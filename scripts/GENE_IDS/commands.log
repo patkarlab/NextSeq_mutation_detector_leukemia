@@ -1,0 +1,16 @@
+# Extracting the ENSEMBL ids for gene names in the .bed file
+# File downloaded from http://ftp.ensembl.org/pub/grch37/current/mysql/ensembl_mart_106/hsapiens_gene_ensembl__gene__main.txt.gz
+awk '{print $4}' /home/pipelines/mutation_detector_nextflow/bedfile/06112021_Leukemia_Panel_sorted.bed | awk 'BEGIN{FS="_"}{if ($5 ~/rs/) ; else print $3}' | sort | uniq > 06112021_Leukemia_Panel_sorted_gene_names.txt
+
+awk 'BEGIN{FS="\t"}{for (i=1; i<=NF; i++) print i,$i}' hsapiens_gene_ensembl__gene__main.txt
+
+awk 'BEGIN{FS="\t"}{print $7,$8}' hsapiens_gene_ensembl__gene__main.txt  > ensemblid_genename.txt
+
+for i in `cat 06112021_Leukemia_Panel_sorted_gene_names.txt`; do  grep -w $i ensemblid_genename.txt | wc -l | awk -v var="$i" '{print var,$1}'; done | sort -rk2,2n | awk '{if ($2==1) print $1}' > single_ensemblid_genes.dat
+
+for i in `cat 06112021_Leukemia_Panel_sorted_gene_names.txt`; do  grep -w $i ensemblid_genename.txt | wc -l | awk -v var="$i" '{print var,$1}'; done | sort -rk2,2n | awk '{if ($2==0) print $1}' > no_ensemblid_genes.dat
+
+grep -w -f single_ensemblid_genes.dat ensemblid_genename.txt | awk '{print $1}' > ensemblids.dat
+
+grep -f  /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/GENE_IDS/06112021_Leukemia_Panel_sorted_gene_names.txt /home/pipelines/mutation_detector_nextflow/bedfile/06112021_Leukemia_Panel_sorted.bed | awk 'BEGIN{FS="\t"}{print $3-$2+1}' | awk '{sum+=$1}END{print sum/(1000*1000)}'
+

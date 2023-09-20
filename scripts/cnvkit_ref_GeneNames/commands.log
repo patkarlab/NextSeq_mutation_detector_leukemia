@@ -1,0 +1,5 @@
+1. cnvkit.py target /scratch/hematopath/hemoseq_v2/mutation_detector_nextflow/bedfile/06112021_Leukemia_Panel_sorted.bed -o targets.bed
+2. for i in `cat samples.dat`; do cnvkit.py coverage /scratch/hematopath/testing/cnvkit_test/cnvkit/control_samples/$i.final.bam targets.bed -o $i.targetcoverage.cnn ; done
+3. cnvkit.py reference *coverage.cnn -f /scratch/hematopath/reference_genomes/hg19_broad/hg19_all.fasta -o Reference_labelled.cnn
+
+
