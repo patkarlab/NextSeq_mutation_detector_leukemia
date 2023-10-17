@@ -3,7 +3,6 @@ nextflow.enable.dsl=2
 
 "mkdir Coverview".execute()
 
-
 log.info """
 STARTING PIPELINE
 =*=*=*=*=*=*=*=*=
@@ -13,7 +12,6 @@ BED file: ${params.bedfile}.bed
 Sequences in:${params.sequences}
 
 """
-
 
 process trimming_fastq_mcf {
 	maxForks 15
@@ -108,8 +106,6 @@ process mapping_reads{
 	bwa mem -R "@RG\\tID:AML\\tPL:ILLUMINA\\tLB:LIB-MIPS\\tSM:${Sample}\\tPI:200" -M -t 20 ${params.genome} ${pairAssembled[0]} > ${Sample}.sam
 	"""
 } 
-
-
 
 process sam_conversion{
 	maxForks 15
@@ -225,6 +221,7 @@ process hsmetrics_run{
 	script:
 	"""
 	${params.java_path}/java -jar ${params.picard_path} CollectHsMetrics I= ${finalBam} O= ${Sample}_hsmetrics.txt BAIT_INTERVALS= ${params.bedfile}.interval_list TARGET_INTERVALS= ${params.bedfile}.interval_list R= ${params.genome} VALIDATION_STRINGENCY=LENIENT
+	${params.hsmetrics_all} $PWD/Final_Output/hsmetrics.tsv ${Sample} ${Sample}_hsmetrics.txt
 	"""
 }
 
@@ -259,7 +256,6 @@ process freebayes_run{
 	${params.freebayes_path} -f ${params.genome} -b ${finalBam} -t ${params.bedfile}.bed > ${Sample}.freebayes.vcf 	
 	"""
 }
-
 
 process vardict_run{
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.vardict.vcf'
@@ -432,7 +428,6 @@ process pindel {
 	${params.pindel}/pindel -f ${params.genome} -i $PWD/config.txt -c chr13 -o ${Sample}_pindel
 	${params.pindel}/pindel2vcf -r ${params.genome} -P ${Sample}_pindel -R hg19 -d 07102019 -v ${Sample}_pindel_SI.vcf
 
-
 	perl ${params.annovarLatest_path}/convert2annovar.pl -format vcf4 ${Sample}_pindel_SI.vcf --outfile ${Sample}_pindel.avinput --withzyg --includeinfo
 
 	perl ${params.annovarLatest_path}/table_annovar.pl ${Sample}_pindel.avinput ${params.annovarLatest_path}/humandb/ -buildver hg19 -out ${Sample}_pindel --remove -protocol refGene,cytoBand,cosmic84 --operation g,r,f -nastring '.' --otherinfo --csvout --thread 10 --xreffile ${params.annovarLatest_path}/example/gene_fullxref.txt
@@ -470,9 +465,21 @@ process cnvkit_run {
 	cp *gene_scatter.pdf $PWD/${Sample}/cnvkit/
 	cp *gene_scatter.pdf $PWD/Final_Output/${Sample}/
 	"""
-
 }
 
+process ifcnv_run {
+	publishDir "$PWD/Final_Output/ifCNV/", mode: 'copy', pattern: '*.html'
+	publishDir "$PWD/Final_Output/ifCNV/", mode: 'copy', pattern: '*.tsv'
+	input:
+		val Sample
+	output:
+		tuple val (Sample), file ("*.html"), file ("*.tsv")
+	script:
+	"""
+	${params.links} $PWD/Final_Output/ ${params.input}
+	${params.ifcnv} ./ ${params.bedfile}.bed ./
+	"""
+}
 
 process coverview_run {
 	executor="local"
@@ -639,28 +646,29 @@ workflow MIPS {
 	RealignerTargetCreator(sam_conversion.out)
 	IndelRealigner(RealignerTargetCreator.out.join(sam_conversion.out)) | BaseRecalibrator
 	PrintReads(IndelRealigner.out.join(BaseRecalibrator.out)) | generatefinalbam
-	hsmetrics_run(generatefinalbam.out)
-	platypus_run(generatefinalbam.out)
-	coverage(generatefinalbam.out)
-	freebayes_run(generatefinalbam.out)
-	mutect2_run(generatefinalbam.out)
-	vardict_run(generatefinalbam.out)
-	varscan_run(generatefinalbam.out)
-	lofreq_run(generatefinalbam.out)
-	strelka_run(generatefinalbam.out)
-	somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
-	pindel(generatefinalbam.out)
-	cnvkit_run(generatefinalbam.out)
-	coverview_run(generatefinalbam.out)
-	coverview_report(coverview_run.out.toList())
-	combine_variants(freebayes_run.out.join(platypus_run.out))
-	cava(somaticSeq_run.out.join(combine_variants.out))
-	format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
-	format_concat_combine_somaticseq(format_somaticseq_combined.out)
-	format_pindel(pindel.out.join(coverage.out))
-	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
-	Final_Output(coverage.out.join(cnvkit_run.out))
-	remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
+	//hsmetrics_run(generatefinalbam.out)
+	//platypus_run(generatefinalbam.out)
+	//coverage(generatefinalbam.out)
+	//freebayes_run(generatefinalbam.out)
+	//mutect2_run(generatefinalbam.out)
+	//vardict_run(generatefinalbam.out)
+	//varscan_run(generatefinalbam.out)
+	//lofreq_run(generatefinalbam.out)
+	//strelka_run(generatefinalbam.out)
+	//somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
+	//pindel(generatefinalbam.out)
+	//cnvkit_run(generatefinalbam.out)
+	ifcnv_run(generatefinalbam.out.collect())
+	//coverview_run(generatefinalbam.out)
+	//coverview_report(coverview_run.out.toList())
+	//combine_variants(freebayes_run.out.join(platypus_run.out))
+	//cava(somaticSeq_run.out.join(combine_variants.out))
+	//format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
+	//format_concat_combine_somaticseq(format_somaticseq_combined.out)
+	//format_pindel(pindel.out.join(coverage.out))
+	//merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
+	//Final_Output(coverage.out.join(cnvkit_run.out))
+	//remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
 }
 
 workflow CNVpanel {
@@ -680,9 +688,13 @@ workflow CNVpanel {
 	hsmetrics_run(generatefinalbam.out)
 	//coverage(generatefinalbam.out)
 	//cnvkit_run(generatefinalbam.out)
-	//coverview_run(generatefinalbam.out)
+	coverview_run(generatefinalbam.out)
 	//coverview_report(coverview_run.out.toList())
 	//Final_Output(coverage.out.join(cnvkit_run.out))
 	//Final_Output(coverage.out)
 	//remove_files(Final_Output.out)
-}		
+}
+
+workflow.onComplete {
+	log.info ( workflow.success ? "\n\nDone! Output in the 'Final_Output' directory \n" : "Oops .. something went wrong" )
+}

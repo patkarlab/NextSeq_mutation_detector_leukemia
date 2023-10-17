@@ -1,1 +1,1 @@
-/home/pipelines/NextSeq_mutation_detector_leukemia//23NGS961-ALP/gatk38_processing/23NGS961-ALP.final.bam	500	23NGS961-ALP
+/home/pipelines/NextSeq_mutation_detector_leukemia//23NGS1107-ALP/gatk38_processing/23NGS1107-ALP.final.bam	500	23NGS1107-ALP
