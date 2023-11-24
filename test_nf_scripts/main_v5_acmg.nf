@@ -481,6 +481,32 @@ process ifcnv_run {
 	"""
 }
 
+process annotSV {
+	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_AnnotSV.tsv'
+	input:
+		tuple val (Sample)
+	output:
+		tuple val (Sample), file ("*_AnnotSV.tsv")
+	script:
+	"""
+	/${params.annotsv} ${PWD}/${Sample}/cnvkit/${Sample}.final.cns ${Sample}
+	/${params.substitute_null} ${Sample}_annotsv.tsv ${Sample}_AnnotSV.tsv
+	"""
+}
+
+process igv_reports {
+	input:
+		tuple val(Sample), file (somaticVcf), file (somaticseqMultianno)		
+	output:
+		tuple val(Sample)
+	script:
+	"""
+	perl ${params.annovarLatest_path}/table_annovar.pl ${somaticVcf} --out ${Sample}.annovar --remove --protocol refGene,cytoBand,cosmic84,popfreq_all_20150413,avsnp150,intervar_20180118,1000g2015aug_all,clinvar_20170905 --operation g,r,f,f,f,f,f,f --buildver hg19 --nastring . --otherinfo --thread 10 ${params.annovarLatest_path}/humandb/ --xreffile ${params.annovarLatest_path}/example/gene_fullxref.txt -vcfinput 
+
+	${params.igv_script} ${params.genome} ${Sample}.annovar.hg19_multianno.vcf $PWD/Final_Output/${Sample}/${Sample}.final.bam $PWD/Final_Output/${Sample}/${Sample}_igv.html
+	"""		
+}
+
 process coverview_run {
 	executor="local"
 	publishDir "$PWD/${Sample}/Coverview/", mode: 'copy'
@@ -657,18 +683,20 @@ workflow MIPS {
 	strelka_run(generatefinalbam.out)
 	somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
 	pindel(generatefinalbam.out)
-	cnvkit_run(generatefinalbam.out)
-	ifcnv_run(generatefinalbam.out.collect())
-	coverview_run(generatefinalbam.out)
-	coverview_report(coverview_run.out.toList())
-	combine_variants(freebayes_run.out.join(platypus_run.out))
-	cava(somaticSeq_run.out.join(combine_variants.out))
-	format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
-	format_concat_combine_somaticseq(format_somaticseq_combined.out)
-	format_pindel(pindel.out.join(coverage.out))
-	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
-	Final_Output(coverage.out.join(cnvkit_run.out))
-	remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
+	//cnvkit_run(generatefinalbam.out)
+	//annotSV(cnvkit_run.out)
+	//ifcnv_run(generatefinalbam.out.collect())
+	igv_reports(somaticSeq_run.out)
+	//coverview_run(generatefinalbam.out)
+	//coverview_report(coverview_run.out.toList())
+	//combine_variants(freebayes_run.out.join(platypus_run.out))
+	//cava(somaticSeq_run.out.join(combine_variants.out))
+	//format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
+	//format_concat_combine_somaticseq(format_somaticseq_combined.out)
+	//format_pindel(pindel.out.join(coverage.out))
+	//merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
+	//Final_Output(coverage.out.join(cnvkit_run.out))
+	//remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
 }
 
 workflow CNVpanel {
@@ -685,10 +713,10 @@ workflow CNVpanel {
 	RealignerTargetCreator(sam_conversion.out)
 	IndelRealigner(RealignerTargetCreator.out.join(sam_conversion.out)) | BaseRecalibrator
 	PrintReads(IndelRealigner.out.join(BaseRecalibrator.out)) | generatefinalbam
-	hsmetrics_run(generatefinalbam.out)
+	//hsmetrics_run(generatefinalbam.out)
 	//coverage(generatefinalbam.out)
 	//cnvkit_run(generatefinalbam.out)
-	coverview_run(generatefinalbam.out)
+	//coverview_run(generatefinalbam.out)
 	//coverview_report(coverview_run.out.toList())
 	//Final_Output(coverage.out.join(cnvkit_run.out))
 	//Final_Output(coverage.out)
