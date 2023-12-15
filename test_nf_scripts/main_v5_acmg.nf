@@ -209,6 +209,7 @@ process generatefinalbam{
 	${params.samtools} index ${Sample}.old_final.bam > ${Sample}.old_final.bam.bai
 	${params.samtools} sort ${Sample}.abra.bam > ${Sample}.final.bam
 	${params.samtools} index ${Sample}.final.bam > ${Sample}.final.bam.bai
+
 	"""
 }
 
@@ -468,16 +469,34 @@ process cnvkit_run {
 }
 
 process ifcnv_run {
-	publishDir "$PWD/Final_Output/ifCNV/", mode: 'copy', pattern: '*.html'
-	publishDir "$PWD/Final_Output/ifCNV/", mode: 'copy', pattern: '*.tsv'
+	//publishDir "$PWD/Final_Output/ifCNV/", mode: 'copy', pattern: '*.html'
+	//publishDir "$PWD/Final_Output/ifCNV/", mode: 'copy', pattern: '*.tsv'
 	input:
 		val Sample
 	output:
-		tuple val (Sample), file ("*.html"), file ("*.tsv")
+		//tuple val (Sample), file ("*.html"), file ("*.tsv")
+		tuple val (Sample)
 	script:
 	"""
 	${params.links} $PWD/Final_Output/ ${params.input}
-	${params.ifcnv} ./ ${params.bedfile}.bed ./
+	mkdir ifCNV
+	${params.ifcnv} ./ ${params.bedfile}.bed ifCNV
+
+	# Making ifCNV's output directory for each sample
+	for i in `cat ${params.input}`
+	do
+		if [ ! -d $PWD/Final_Output/\${i}/ifCNV ]; then
+			mkdir $PWD/Final_Output/\${i}/ifCNV
+		fi		
+	done
+
+	# Copying output of ifCNV to respective samples
+	if [ -f ifCNV/ifCNV.tsv ]; then
+		for i in `awk 'NR>1{print \$3}' ifCNV/ifCNV.tsv | awk 'BEGIN{FS="."}{print \$1}' | sort | uniq`	
+		do
+			cp ifCNV/\${i}.*.html $PWD/Final_Output/\${i}/ifCNV/	
+		done
+	fi
 	"""
 }
 
@@ -683,20 +702,20 @@ workflow MIPS {
 	strelka_run(generatefinalbam.out)
 	somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
 	pindel(generatefinalbam.out)
-	//cnvkit_run(generatefinalbam.out)
-	//annotSV(cnvkit_run.out)
-	//ifcnv_run(generatefinalbam.out.collect())
+	cnvkit_run(generatefinalbam.out)
+	annotSV(cnvkit_run.out)
+	ifcnv_run(generatefinalbam.out.collect())
 	igv_reports(somaticSeq_run.out)
-	//coverview_run(generatefinalbam.out)
-	//coverview_report(coverview_run.out.toList())
-	//combine_variants(freebayes_run.out.join(platypus_run.out))
-	//cava(somaticSeq_run.out.join(combine_variants.out))
-	//format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
-	//format_concat_combine_somaticseq(format_somaticseq_combined.out)
-	//format_pindel(pindel.out.join(coverage.out))
-	//merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
-	//Final_Output(coverage.out.join(cnvkit_run.out))
-	//remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
+	coverview_run(generatefinalbam.out)
+	coverview_report(coverview_run.out.toList())
+	combine_variants(freebayes_run.out.join(platypus_run.out))
+	cava(somaticSeq_run.out.join(combine_variants.out))
+	format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
+	format_concat_combine_somaticseq(format_somaticseq_combined.out)
+	format_pindel(pindel.out.join(coverage.out))
+	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
+	Final_Output(coverage.out.join(cnvkit_run.out))
+	remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
 }
 
 workflow CNVpanel {
@@ -710,9 +729,9 @@ workflow CNVpanel {
 
 	main:
 	trimming_trimmomatic(samples_ch) | pair_assembly_pear | mapping_reads | sam_conversion
-	RealignerTargetCreator(sam_conversion.out)
-	IndelRealigner(RealignerTargetCreator.out.join(sam_conversion.out)) | BaseRecalibrator
-	PrintReads(IndelRealigner.out.join(BaseRecalibrator.out)) | generatefinalbam
+	//RealignerTargetCreator(sam_conversion.out)
+	//IndelRealigner(RealignerTargetCreator.out.join(sam_conversion.out)) | BaseRecalibrator
+	//PrintReads(IndelRealigner.out.join(BaseRecalibrator.out)) | generatefinalbam
 	//hsmetrics_run(generatefinalbam.out)
 	//coverage(generatefinalbam.out)
 	//cnvkit_run(generatefinalbam.out)

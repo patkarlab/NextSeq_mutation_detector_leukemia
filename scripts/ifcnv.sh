@@ -7,6 +7,6 @@ output_dir=$3
 
 source activate ifcnv
 
-ifCNV -i ${input_dir} -b ${bedfile} -o ${output_dir} -sv True
+ifCNV -i ${input_dir} -b ${bedfile} -o ${output_dir} -sv True -a ''
 
 conda deactivate

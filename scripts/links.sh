@@ -7,6 +7,8 @@ sample_list=$2
 for samples in `cat ${sample_list}`
 do 
 	ln -s ${output_folder}/${samples}/${samples}.final.bam ./
-	touch ${output_folder}/${samples}/${samples}.final.bam.bai
+	#touch ${output_folder}/${samples}/${samples}.final.bam.bai
 	ln -s ${output_folder}/${samples}/${samples}.final.bam.bai ./
+	#touch ${samples}.final.bam
+	touch ${samples}.final.bam.bai
 done		
