@@ -29,7 +29,7 @@ nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config r
 --sequences /home/pipelines/NextSeq_mutation_detector_leukemia/sequences/ \
 --input /home/pipelines/NextSeq_mutation_detector_leukemia/samplesheet.csv \
 -resume -bg
-#conda deactivate 
+conda deactivate 
 
 #source activate new_base
 #nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_v5_acmg.nf -entry CNVpanel \
