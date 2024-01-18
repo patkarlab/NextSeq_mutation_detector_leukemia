@@ -16,3 +16,4 @@ source activate cnvkit
 create_report filtered.vcf --fasta ${genome} --ideogram /home/programs/IGV_reports/igv-reports/test/data/hg19/cytoBandIdeo.txt --info-columns Gene.refGene cosmic84 SOMATIC --tracks ${vcf_file} ${bam_file} /home/reference_genomes/refgene_hg37/refGene.txt.gz --output ${outfile}
 
 conda deactivate
+# Compare with igv_reports.sh in the trial folder
