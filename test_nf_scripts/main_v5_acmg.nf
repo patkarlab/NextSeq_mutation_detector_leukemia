@@ -705,6 +705,7 @@ workflow MIPS {
 	annotSV(cnvkit_run.out)
 	ifcnv_run(generatefinalbam.out.collect())
 	igv_reports(somaticSeq_run.out)
+	update_db(somaticSeq_run.out.collect())
 	coverview_run(generatefinalbam.out)
 	coverview_report(coverview_run.out.toList())
 	combine_variants(freebayes_run.out.join(platypus_run.out))
