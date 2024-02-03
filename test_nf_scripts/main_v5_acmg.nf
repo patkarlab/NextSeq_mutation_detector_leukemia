@@ -500,6 +500,17 @@ process ifcnv_run {
 	"""
 }
 
+process update_db {
+	input:
+		val Sample	
+	output:
+		
+	script:
+	""" 
+	${params.updatedb} ${params.input}
+	"""
+}
+
 process annotSV {
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_AnnotSV.tsv'
 	input:
