@@ -502,12 +502,18 @@ process ifcnv_run {
 
 process update_db {
 	input:
-		val Sample	
+		val Sample
 	output:
-		val Sample	
+		val Sample
 	script:
 	"""
-	files=$(ls *.somaticseq.vcf)
+	for i in `cat ${params.input}`
+	do 
+		if [ -f ${PWD}/Final_Output/\${i}/\${i}.somaticseq.vcf ]; then
+			ln -s ${PWD}/Final_Output/\${i}/\${i}.somaticseq.vcf ./
+		fi
+	done
+	files=\$(ls *.somaticseq.vcf)
 	${params.updatedb} ${params.alpdb} \${files}
 	"""
 }
