@@ -3,7 +3,7 @@
 import sqlite3
 import sys
 
-def calculate_frequency_for_variants(db_name):
+def calculate_frequency_for_variants(db_name, output):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
 
@@ -19,6 +19,7 @@ def calculate_frequency_for_variants(db_name):
     cursor.execute('SELECT CHROM, POS, REF, ALT, SAMPLE_NAME FROM Variants;')
     variants = cursor.fetchall()
 
+    outfile = open (output,'w')
     for variant in variants:
         chrom, pos, ref, alt, sample_names = variant
         samples_for_variant = set(sample_names.split(','))
@@ -26,16 +27,19 @@ def calculate_frequency_for_variants(db_name):
         # Calculate frequency
         frequency = len(samples_for_variant) / total_unique_samples
 
-        print(f"Variant: Chrom:{chrom}, Pos:{pos}, Ref:{ref}, Alt:{alt}")
-        print(f"Number of Samples: {len(samples_for_variant)}")
-        print(f"Frequency: {frequency:.4f}\n")
+        #print(f"Variant: Chrom:{chrom}, Pos:{pos}, Ref:{ref}, Alt:{alt}")
+        #print(f"Number of Samples: {len(samples_for_variant)}")
+        #print(f"Frequency: {frequency:.4f}\n")
+        print (chrom + ":" + str(pos) + ":" + ref + ":" + alt, frequency, file=outfile, sep="\t")
 
+    outfile.close()	
     conn.close()
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print("Usage: {} <database_name>".format(sys.argv[0]))
         sys.exit(1)
 
     db_name = sys.argv[1]
-    calculate_frequency_for_variants(db_name)
+    output_file = sys.argv[2]
+    calculate_frequency_for_variants(db_name, output_file)

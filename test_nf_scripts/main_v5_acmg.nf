@@ -504,7 +504,7 @@ process update_db {
 	input:
 		val Sample
 	output:
-		val Sample
+		tuple val (Sample), file ("freq.txt")
 	script:
 	"""
 	for i in `cat ${params.input}`
@@ -515,6 +515,7 @@ process update_db {
 	done
 	files=\$(ls *.somaticseq.vcf)
 	${params.updatedb} ${params.alpdb} \${files}
+	${params.freq_py} ${params.alpdb} freq.txt
 	"""
 }
 
@@ -668,6 +669,17 @@ process merge_csv {
 	#${params.acmg_scripts}/integrate_p2.py ${Sample}_acmg.csv ${PWD}/Final_Output/${Sample}/${Sample}.xlsx
 	#mv output_temp.xlsx ${PWD}/Final_Output/${Sample}/${Sample}.xlsx
 	"""
+}
+
+process update_freq {
+	input:
+		val (Sample)
+	output:
+		
+	script:
+	"""
+
+	"""  	
 }
 
 process Final_Output {
