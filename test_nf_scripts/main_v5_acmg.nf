@@ -673,12 +673,12 @@ process merge_csv {
 
 process update_freq {
 	input:
-		val (Sample)
+		tuple val (Sample), file (freq_txt)
 	output:
-		
+		val Sample
 	script:
 	"""
-
+	ls
 	"""  	
 }
 
@@ -730,22 +730,23 @@ workflow MIPS {
 	lofreq_run(generatefinalbam.out)
 	strelka_run(generatefinalbam.out)
 	somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
-	//pindel(generatefinalbam.out)
-	//cnvkit_run(generatefinalbam.out)
-	//annotSV(cnvkit_run.out)
-	//ifcnv_run(generatefinalbam.out.collect())
-	//igv_reports(somaticSeq_run.out)
+	pindel(generatefinalbam.out)
+	cnvkit_run(generatefinalbam.out)
+	annotSV(cnvkit_run.out)
+	ifcnv_run(generatefinalbam.out.collect())
+	igv_reports(somaticSeq_run.out)
 	update_db(somaticSeq_run.out.collect())
-	//coverview_run(generatefinalbam.out)
-	//coverview_report(coverview_run.out.toList())
-	//combine_variants(freebayes_run.out.join(platypus_run.out))
-	//cava(somaticSeq_run.out.join(combine_variants.out))
-	//format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
-	//format_concat_combine_somaticseq(format_somaticseq_combined.out)
-	//format_pindel(pindel.out.join(coverage.out))
-	//merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
-	//Final_Output(coverage.out.join(cnvkit_run.out))
-	//remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
+	coverview_run(generatefinalbam.out)
+	coverview_report(coverview_run.out.toList())
+	combine_variants(freebayes_run.out.join(platypus_run.out))
+	cava(somaticSeq_run.out.join(combine_variants.out))
+	format_somaticseq_combined(somaticSeq_run.out.join(combine_variants.out))
+	format_concat_combine_somaticseq(format_somaticseq_combined.out)
+	format_pindel(pindel.out.join(coverage.out))
+	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
+	update_freq(update_db.out.join(merge_csv.out.collect()))
+	Final_Output(coverage.out.join(cnvkit_run.out))
+	remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
 }
 
 workflow CNVpanel {
