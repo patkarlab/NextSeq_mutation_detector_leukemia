@@ -501,10 +501,11 @@ process ifcnv_run {
 }
 
 process update_db {
+	publishDir "$PWD/work/", mode: 'copy', pattern: 'freq.txt'
 	input:
 		val Sample
 	output:
-		tuple val (Sample), file ("freq.txt")
+		file ("freq.txt")
 	script:
 	"""
 	for i in `cat ${params.input}`
@@ -673,12 +674,18 @@ process merge_csv {
 
 process update_freq {
 	input:
-		tuple val (Sample), file (freq_txt)
+		val (Sample)
 	output:
 		val Sample
 	script:
 	"""
-	ls
+	ln -s ${PWD}/work/freq.txt ./
+	for i in `cat ${params.input}`
+	do
+		if [ -f ${PWD}/Final_Output/\${i}/\${i}.xlsx ]; then
+			${params.update_freq_excel} ${PWD}/Final_Output/\${i}/\${i}.xlsx freq.txt
+		fi
+	done
 	"""  	
 }
 
@@ -744,7 +751,7 @@ workflow MIPS {
 	format_concat_combine_somaticseq(format_somaticseq_combined.out)
 	format_pindel(pindel.out.join(coverage.out))
 	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(format_pindel.out.join(cnvkit_run.out))))
-	update_freq(update_db.out.join(merge_csv.out.collect()))
+	update_freq(merge_csv.out.collect())
 	Final_Output(coverage.out.join(cnvkit_run.out))
 	remove_files(merge_csv.out.join(coverview_run.out.join(Final_Output.out)))
 }
