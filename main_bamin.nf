@@ -259,8 +259,7 @@ process vardict_run{
 	"""
 }
 
-process varscan_run{
-	
+process varscan_run{	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -280,7 +279,6 @@ process varscan_run{
 }
 
 process lofreq_run{
-	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -295,23 +293,16 @@ process lofreq_run{
 }
 
 process strelka_run{
-	publishDir "$PWD/${Sample}/variants/strelka", mode: 'copy', pattern: '*.strelka.vcf'
-	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
-		val (Sample)
+		val (Sample), file ("*.strelka.vcf")
 	script:
 	"""
-	${params.strelka_path}/configureStrelkaGermlineWorkflow.py --bam ${finalBam} --referenceFasta ${params.genome} --callRegions  ${params.bedfile}.bed.gz --targeted --runDir ${PWD}/${Sample}/variants/strelka/
-	${PWD}/${Sample}/variants/strelka/runWorkflow.py -m local -j 20
-	gunzip -f ${PWD}/${Sample}/variants/strelka/results/variants/variants.vcf.gz
-	mv ${PWD}/${Sample}/variants/strelka/results/variants/variants.vcf $PWD/${Sample}/variants/${Sample}.strelka.vcf
-	
-	${params.strelka_path}/configureStrelkaSomaticWorkflow.py --normalBam ${params.NA12878_bam}  --tumorBam ${finalBam} --referenceFasta ${params.genome} --callRegions ${params.bedfile}.bed.gz --targeted --runDir ${PWD}/${Sample}/variants/strelka-somatic/
-	${PWD}/${Sample}/variants/strelka-somatic/runWorkflow.py -m local -j 20
-	
-	${params.bcftools_path} concat -a ${PWD}/${Sample}/variants/strelka-somatic/results/variants/somatic.indels.vcf.gz ${PWD}/${Sample}/variants/strelka-somatic/results/variants/somatic.snvs.vcf.gz -o ${PWD}/${Sample}/variants/${Sample}.strelka-somatic.vcf
+	${params.strelka_path}/configureStrelkaGermlineWorkflow.py --bam ${finalBam} --referenceFasta ${params.genome} --callRegions  ${params.bedfile}.bed.gz --targeted --runDir ./variants/strelka/
+	./variants/strelka/runWorkflow.py -m local -j 20
+	gunzip -f ./variants/strelka/results/variants/variants.vcf.gz
+	mv ./variants/strelka/results/variants/variants.vcf ./variants/${Sample}.strelka.vcf
 	"""
 }
 
@@ -603,6 +594,7 @@ process format_somaticseq_combined {
 		val Sample
 	script:
 	"""
+	mkdir -p ${PWD}/${Sample}/Annovar_Modified
 	python3 ${params.format_somaticseq_script} ${PWD}/${Sample}/ANNOVAR/${Sample}.somaticseq.hg19_multianno.csv ${PWD}/${Sample}/Annovar_Modified/${Sample}.somaticseq.csv
 	python3 ${params.format_combined_script} ${PWD}/${Sample}/ANNOVAR/${Sample}.combined.hg19_multianno.csv ${PWD}/${Sample}/Annovar_Modified/${Sample}.combined.csv
 	"""
@@ -712,7 +704,7 @@ workflow MIPS {
 	vardict_run(generatefinalbam.out)
 	varscan_run(generatefinalbam.out)
 	lofreq_run(generatefinalbam.out)
-	//strelka_run(generatefinalbam.out)
+	strelka_run(generatefinalbam.out)
 	//somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
 	//pindel(generatefinalbam.out)
 	//cnvkit_run(generatefinalbam.out)
