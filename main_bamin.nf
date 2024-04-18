@@ -223,14 +223,11 @@ process hsmetrics_run{
 }
 
 process mutect2_run{
-	maxForks 10
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.mutect2.vcf'
-	
+	maxForks 10	
 	input:
 		tuple val(Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
 		tuple val (Sample), file ("*.mutect2.vcf")
-
 	script:
 	"""
 	#${params.java_path}/java -Xmx10G -jar ${params.GATK38_path} -T MuTect2 -R ${params.genome} -I:tumor ${finalBam} -o ${Sample}.mutect2.vcf --dbsnp ${params.site2} -L ${params.bedfile}.bed -nct 25 -contamination 0.02 -mbq 30
@@ -240,23 +237,18 @@ process mutect2_run{
 	"""
 }
 
-process freebayes_run{
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.freebayes.vcf'
-	
+process freebayes_run{	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
 		tuple val (Sample), file ("*.freebayes.vcf")
-
 	script:
 	"""
 	${params.freebayes_path} -f ${params.genome} -b ${finalBam} -t ${params.bedfile}.bed > ${Sample}.freebayes.vcf 	
 	"""
 }
 
-process vardict_run{
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.vardict.vcf'
-	
+process vardict_run{	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -268,11 +260,6 @@ process vardict_run{
 }
 
 process varscan_run{
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan_snp.vcf'
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan_indel.vcf'
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan_snp.vcf.gz'
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan_indel.vcf.gz'
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan.vcf'
 	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
@@ -293,7 +280,6 @@ process varscan_run{
 }
 
 process lofreq_run{
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.lofreq.filtered.vcf'
 	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
@@ -395,11 +381,10 @@ process platypus_run{
 }
 
 process coverage {
-	publishDir "$PWD/${Sample}/coverage/", mode: 'copy'
 	input:
 		tuple val (Sample), file(finalBams), file(finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
-		tuple val (Sample), file ("*")
+		tuple val (Sample), file ("*.counts.bed"), file ("*_pindel.counts.bed")
 	script:
 	"""
 	${params.bedtools} bamtobed -i ${finalBams[0]} > ${Sample}.bed
@@ -721,12 +706,12 @@ workflow MIPS {
 	getitd(generatefinalbam.out)
 	hsmetrics_run(generatefinalbam.out)
 	platypus_run(generatefinalbam.out)
-	//coverage(generatefinalbam.out)
-	//freebayes_run(generatefinalbam.out)
-	//mutect2_run(generatefinalbam.out)
-	//vardict_run(generatefinalbam.out)
-	//varscan_run(generatefinalbam.out)
-	//lofreq_run(generatefinalbam.out)
+	coverage(generatefinalbam.out)
+	freebayes_run(generatefinalbam.out)
+	mutect2_run(generatefinalbam.out)
+	vardict_run(generatefinalbam.out)
+	varscan_run(generatefinalbam.out)
+	lofreq_run(generatefinalbam.out)
 	//strelka_run(generatefinalbam.out)
 	//somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
 	//pindel(generatefinalbam.out)
