@@ -384,7 +384,6 @@ process somaticSeq_run {
 }
 
 process platypus_run{
-	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.platypus.vcf'
 	input:
 		tuple val (Sample), file(finalBams), file(finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -720,8 +719,8 @@ workflow MIPS {
 	main:
 	generatefinalbam(samples_ch)
 	getitd(generatefinalbam.out)
-	//hsmetrics_run(generatefinalbam.out)
-	//platypus_run(generatefinalbam.out)
+	hsmetrics_run(generatefinalbam.out)
+	platypus_run(generatefinalbam.out)
 	//coverage(generatefinalbam.out)
 	//freebayes_run(generatefinalbam.out)
 	//mutect2_run(generatefinalbam.out)
