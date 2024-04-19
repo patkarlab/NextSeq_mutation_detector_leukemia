@@ -619,6 +619,7 @@ process format_somaticseq_combined {
 		val Sample
 	script:
 	"""
+	mkdir -p ${PWD}/${Sample}/Annovar_Modified
 	python3 ${params.format_somaticseq_script} ${PWD}/${Sample}/ANNOVAR/${Sample}.somaticseq.hg19_multianno.csv ${PWD}/${Sample}/Annovar_Modified/${Sample}.somaticseq.csv
 	python3 ${params.format_combined_script} ${PWD}/${Sample}/ANNOVAR/${Sample}.combined.hg19_multianno.csv ${PWD}/${Sample}/Annovar_Modified/${Sample}.combined.csv
 	"""
