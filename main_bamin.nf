@@ -299,10 +299,10 @@ process strelka_run{
 		val (Sample), file ("*.strelka.vcf")
 	script:
 	"""
-	${params.strelka_path}/configureStrelkaGermlineWorkflow.py --bam ${finalBam} --referenceFasta ${params.genome} --callRegions  ${params.bedfile}.bed.gz --targeted --runDir ./variants/strelka/
-	./variants/strelka/runWorkflow.py -m local -j 20
-	gunzip -f ./variants/strelka/results/variants/variants.vcf.gz
-	mv ./variants/strelka/results/variants/variants.vcf ./variants/${Sample}.strelka.vcf
+	${params.strelka_path}/configureStrelkaGermlineWorkflow.py --bam ${finalBam} --referenceFasta ${params.genome} --callRegions  ${params.bedfile}.bed.gz --targeted --runDir ./
+	./runWorkflow.py -m local -j 20
+	gunzip -f ./results/variants/variants.vcf.gz
+	mv ./results/variants/variants.vcf ./variants/${Sample}.strelka.vcf
 	"""
 }
 
