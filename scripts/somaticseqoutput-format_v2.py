@@ -49,7 +49,7 @@ df2=pd.DataFrame(data, columns=data.keys())
 df3=df.iloc[:,5:discarded_column]
 
 horizontal_stack = pd.concat([df1, df2, df3], axis=1)
-horizontal_stack['cosmic84']=horizontal_stack['cosmic84'].str.replace(',' , ';')
+horizontal_stack['cosmic84']=horizontal_stack['cosmic84'].astype(str).str.replace(',' , ';')
 horizontal_stack['AAChange.refGene']=horizontal_stack['AAChange.refGene'].str.replace(',' , ';')
 horizontal_stack.replace(to_replace='.', value='-1', inplace=True)
 horizontal_stack=horizontal_stack.reindex(columns = somatic_cols)

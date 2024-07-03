@@ -120,7 +120,7 @@ process sam_conversion{
 	script:
 	"""
 	${params.java_path}/java -jar ${params.picard_path} FixMateInformation I= ${samFile} O= ${Sample}.fxd.sam VALIDATION_STRINGENCY=SILENT
-	cp ${samFile} ${Sample}.fxd.sam
+	mv ${samFile} ${Sample}.fxd.sam
 	${params.samtools} view -bT ${params.genome} ${Sample}.fxd.sam > ${Sample}.fxd.bam
 	#${params.samtools} sort ${Sample}.fxd.bam > ${Sample}_sorted.bam
 	#${params.samtools} index ${Sample}_sorted.bam > ${Sample}_sorted.bam.bai
