@@ -459,9 +459,9 @@ process cnvkit_run {
 	"""
 	#cnvkit.py batch ${finalBam} -r ${params.cnvkitRef} -m hybrid --drop-low-coverage --output-dir ${PWD}/${Sample}/cnvkit/ --diagram --scatter
 	${params.cnvkit_path} ${finalBam} ${params.cnvkitRef} ${PWD}/${Sample}/cnvkit/
-	/${params.gene_scatter}/custom_scatter_v3.py ${params.gene_scatter}/chr_list_all.txt ${PWD}/${Sample}/cnvkit/${Sample}.final.cnr ${PWD}/${Sample}/cnvkit/${Sample}.final.cns ${Sample}
-
-	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter}/chrwise_list.txt ${PWD}/${Sample}/cnvkit/${Sample}.final.cnr ${PWD}/${Sample}/cnvkit/${Sample}.final.cns ${Sample}_chr_
+	# Commenting the following command for CNV myeloid panel, uncomment for the usual AL panel
+	#/${params.gene_scatter}/custom_scatter_v3.py ${params.gene_scatter}/chr_list_all.txt ${PWD}/${Sample}/cnvkit/${Sample}.final.cnr ${PWD}/${Sample}/cnvkit/${Sample}.final.cns ${Sample}
+	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ${PWD}/${Sample}/cnvkit/${Sample}.final.cnr ${PWD}/${Sample}/cnvkit/${Sample}.final.cns ${Sample}_chr_
 
 	cp *gene_scatter.pdf $PWD/${Sample}/cnvkit/
 	cp *gene_scatter.pdf $PWD/Final_Output/${Sample}/
@@ -713,8 +713,7 @@ process remove_files{
 }
 
 workflow MIPS {
-
-    Channel
+	Channel
 		.fromPath(params.input)
 		.splitCsv(header:false)
 		.flatten()
