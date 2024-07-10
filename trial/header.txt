@@ -1,0 +1,118 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="All filters passed">
+##SomaticSeq=v3.7.3__2023-11-17_23:49:51
+##FILTER=<ID=LowQual,Description="Less confident somatic mutation calls with probability value at least 0.1">
+##FILTER=<ID=REJECT,Description="Rejected as a confident somatic mutation with ONCOSCORE below 2">
+##INFO=<ID=SOMATIC,Number=0,Type=Flag,Description="Somatic mutation in primary">
+##INFO=<ID=MVDLKFP,Number=7,Type=String,Description="Calling decision of the 7 algorithms: MuTect, VarScan2, VarDict, LoFreq, Strelka, Freebayes, Platypus">
+##INFO=<ID=NUM_TOOLS,Number=1,Type=Float,Description="Number of tools called it Somatic">
+##INFO=<ID=LC,Number=1,Type=Float,Description="Linguistic sequence complexity in Phred scale between 0 to 40. Higher value means higher complexity.">
+##INFO=<ID=AF,Number=1,Type=Float,Description="Variant Allele Fraction">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DP4,Number=4,Type=Integer,Description="ref forward, ref reverse, alt forward, alt reverse">
+##FORMAT=<ID=CD4,Number=4,Type=Integer,Description="ref concordant, ref discordant, alt concordant, alt discordant">
+##FORMAT=<ID=refMQ,Number=1,Type=Float,Description="average mapping score for reference reads">
+##FORMAT=<ID=altMQ,Number=1,Type=Float,Description="average mapping score for alternate reads">
+##FORMAT=<ID=refBQ,Number=1,Type=Float,Description="average base quality score for reference reads">
+##FORMAT=<ID=altBQ,Number=1,Type=Float,Description="average base quality score for alternate reads">
+##FORMAT=<ID=refNM,Number=1,Type=Float,Description="average edit distance for reference reads">
+##FORMAT=<ID=altNM,Number=1,Type=Float,Description="average edit distance for alternate reads">
+##FORMAT=<ID=fetSB,Number=1,Type=Float,Description="Strand bias FET">
+##FORMAT=<ID=fetCD,Number=1,Type=Float,Description="Concordance FET">
+##FORMAT=<ID=uMQ,Number=1,Type=Float,Description="p of MannWhitneyU test of mapping quality: p close to 0 means ALT MQs are significantly less than reference MQs, and p close to 1 means ALT MQs are significantly greater than reference MQs.">
+##FORMAT=<ID=uBQ,Number=1,Type=Float,Description="p of MannWhitneyU test of base quality: p close to 0 means ALT BQs are significantly less than reference BQs, and p close to 1 means ALT BQs are significantly greater than reference BQs.">
+##FORMAT=<ID=MQ0,Number=1,Type=Integer,Description="Number of reads with mapping quality of 0">
+##FORMAT=<ID=VAF,Number=1,Type=Float,Description="Variant Allele Frequency">
+##contig=<ID=chr1>
+##contig=<ID=chr2>
+##contig=<ID=chr3>
+##contig=<ID=chr4>
+##contig=<ID=chr5>
+##contig=<ID=chr6>
+##contig=<ID=chr7>
+##contig=<ID=chr8>
+##contig=<ID=chr9>
+##contig=<ID=chr10>
+##contig=<ID=chr11>
+##contig=<ID=chr12>
+##contig=<ID=chr13>
+##contig=<ID=chr14>
+##contig=<ID=chr15>
+##contig=<ID=chr16>
+##contig=<ID=chr17>
+##contig=<ID=chr18>
+##contig=<ID=chr19>
+##contig=<ID=chr20>
+##contig=<ID=chr21>
+##contig=<ID=chr22>
+##contig=<ID=chrX>
+##contig=<ID=chrY>
+##bcftools_concatVersion=1.9+htslib-1.9
+##bcftools_concatCommand=concat -a -o 15AML201.somaticseq.vcf 15AML201.somaticseq/somaticseq_snv.vcf.gz 15AML201.somaticseq/somaticseq_indel.vcf.gz; Date=Sat Nov 18 00:01:23 2023
+##INFO=<ID=ANNOVAR_DATE,Number=1,Type=String,Description="Flag the start of ANNOVAR annotation for one alternative allele">
+##INFO=<ID=Func.refGene,Number=.,Type=String,Description="Func.refGene annotation provided by ANNOVAR">
+##INFO=<ID=Gene.refGene,Number=.,Type=String,Description="Gene.refGene annotation provided by ANNOVAR">
+##INFO=<ID=GeneDetail.refGene,Number=.,Type=String,Description="GeneDetail.refGene annotation provided by ANNOVAR">
+##INFO=<ID=ExonicFunc.refGene,Number=.,Type=String,Description="ExonicFunc.refGene annotation provided by ANNOVAR">
+##INFO=<ID=AAChange.refGene,Number=.,Type=String,Description="AAChange.refGene annotation provided by ANNOVAR">
+##INFO=<ID=cytoBand,Number=.,Type=String,Description="cytoBand annotation provided by ANNOVAR">
+##INFO=<ID=cosmic84,Number=.,Type=String,Description="cosmic84 annotation provided by ANNOVAR">
+##INFO=<ID=PopFreqMax,Number=.,Type=String,Description="PopFreqMax annotation provided by ANNOVAR">
+##INFO=<ID=1000G_ALL,Number=.,Type=String,Description="1000G_ALL annotation provided by ANNOVAR">
+##INFO=<ID=1000G_AFR,Number=.,Type=String,Description="1000G_AFR annotation provided by ANNOVAR">
+##INFO=<ID=1000G_AMR,Number=.,Type=String,Description="1000G_AMR annotation provided by ANNOVAR">
+##INFO=<ID=1000G_EAS,Number=.,Type=String,Description="1000G_EAS annotation provided by ANNOVAR">
+##INFO=<ID=1000G_EUR,Number=.,Type=String,Description="1000G_EUR annotation provided by ANNOVAR">
+##INFO=<ID=1000G_SAS,Number=.,Type=String,Description="1000G_SAS annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_ALL,Number=1,Type=Float,Description="ExAC_ALL annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_AFR,Number=1,Type=Float,Description="ExAC_AFR annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_AMR,Number=1,Type=Float,Description="ExAC_AMR annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_EAS,Number=1,Type=Float,Description="ExAC_EAS annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_FIN,Number=1,Type=Float,Description="ExAC_FIN annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_NFE,Number=1,Type=Float,Description="ExAC_NFE annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_OTH,Number=1,Type=Float,Description="ExAC_OTH annotation provided by ANNOVAR">
+##INFO=<ID=ExAC_SAS,Number=1,Type=Float,Description="ExAC_SAS annotation provided by ANNOVAR">
+##INFO=<ID=ESP6500siv2_ALL,Number=.,Type=String,Description="ESP6500siv2_ALL annotation provided by ANNOVAR">
+##INFO=<ID=ESP6500siv2_AA,Number=.,Type=String,Description="ESP6500siv2_AA annotation provided by ANNOVAR">
+##INFO=<ID=ESP6500siv2_EA,Number=.,Type=String,Description="ESP6500siv2_EA annotation provided by ANNOVAR">
+##INFO=<ID=CG46,Number=.,Type=String,Description="CG46 annotation provided by ANNOVAR">
+##INFO=<ID=avsnp150,Number=.,Type=String,Description="avsnp150 annotation provided by ANNOVAR">
+##INFO=<ID=InterVar_automated,Number=.,Type=String,Description="InterVar_automated annotation provided by ANNOVAR">
+##INFO=<ID=PVS1,Number=.,Type=String,Description="PVS1 annotation provided by ANNOVAR">
+##INFO=<ID=PS1,Number=.,Type=String,Description="PS1 annotation provided by ANNOVAR">
+##INFO=<ID=PS2,Number=.,Type=String,Description="PS2 annotation provided by ANNOVAR">
+##INFO=<ID=PS3,Number=.,Type=String,Description="PS3 annotation provided by ANNOVAR">
+##INFO=<ID=PS4,Number=.,Type=String,Description="PS4 annotation provided by ANNOVAR">
+##INFO=<ID=PM1,Number=.,Type=String,Description="PM1 annotation provided by ANNOVAR">
+##INFO=<ID=PM2,Number=.,Type=String,Description="PM2 annotation provided by ANNOVAR">
+##INFO=<ID=PM3,Number=.,Type=String,Description="PM3 annotation provided by ANNOVAR">
+##INFO=<ID=PM4,Number=.,Type=String,Description="PM4 annotation provided by ANNOVAR">
+##INFO=<ID=PM5,Number=.,Type=String,Description="PM5 annotation provided by ANNOVAR">
+##INFO=<ID=PM6,Number=.,Type=String,Description="PM6 annotation provided by ANNOVAR">
+##INFO=<ID=PP1,Number=.,Type=String,Description="PP1 annotation provided by ANNOVAR">
+##INFO=<ID=PP2,Number=.,Type=String,Description="PP2 annotation provided by ANNOVAR">
+##INFO=<ID=PP3,Number=.,Type=String,Description="PP3 annotation provided by ANNOVAR">
+##INFO=<ID=PP4,Number=.,Type=String,Description="PP4 annotation provided by ANNOVAR">
+##INFO=<ID=PP5,Number=.,Type=String,Description="PP5 annotation provided by ANNOVAR">
+##INFO=<ID=BA1,Number=.,Type=String,Description="BA1 annotation provided by ANNOVAR">
+##INFO=<ID=BS1,Number=.,Type=String,Description="BS1 annotation provided by ANNOVAR">
+##INFO=<ID=BS2,Number=.,Type=String,Description="BS2 annotation provided by ANNOVAR">
+##INFO=<ID=BS3,Number=.,Type=String,Description="BS3 annotation provided by ANNOVAR">
+##INFO=<ID=BS4,Number=.,Type=String,Description="BS4 annotation provided by ANNOVAR">
+##INFO=<ID=BP1,Number=.,Type=String,Description="BP1 annotation provided by ANNOVAR">
+##INFO=<ID=BP2,Number=.,Type=String,Description="BP2 annotation provided by ANNOVAR">
+##INFO=<ID=BP3,Number=.,Type=String,Description="BP3 annotation provided by ANNOVAR">
+##INFO=<ID=BP4,Number=.,Type=String,Description="BP4 annotation provided by ANNOVAR">
+##INFO=<ID=BP5,Number=.,Type=String,Description="BP5 annotation provided by ANNOVAR">
+##INFO=<ID=BP6,Number=.,Type=String,Description="BP6 annotation provided by ANNOVAR">
+##INFO=<ID=BP7,Number=.,Type=String,Description="BP7 annotation provided by ANNOVAR">
+##INFO=<ID=1000g2015aug_all,Number=1,Type=Float,Description="1000g2015aug_all annotation provided by ANNOVAR">
+##INFO=<ID=CLINSIG,Number=.,Type=String,Description="CLINSIG annotation provided by ANNOVAR">
+##INFO=<ID=CLNDBN,Number=.,Type=String,Description="CLNDBN annotation provided by ANNOVAR">
+##INFO=<ID=CLNACC,Number=.,Type=String,Description="CLNACC annotation provided by ANNOVAR">
+##INFO=<ID=CLNDSDB,Number=.,Type=String,Description="CLNDSDB annotation provided by ANNOVAR">
+##INFO=<ID=CLNDSDBID,Number=.,Type=String,Description="CLNDSDBID annotation provided by ANNOVAR">
+##INFO=<ID=ALLELE_END,Number=0,Type=Flag,Description="Flag the end of ANNOVAR annotation for one alternative allele">
+##bcftools_viewVersion=1.9+htslib-1.9
+##bcftools_viewCommand=view -h 15AML201.annovar.hg19_multianno.vcf; Date=Tue Nov 28 15:37:22 2023
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	15AML201
