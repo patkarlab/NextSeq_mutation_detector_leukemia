@@ -23,10 +23,11 @@ echo "WARNING : change the bedfile and the cnv reference"
 # Leukemia_Panel_Myeloid_2023_Feb_hg37_sortd.bed : "/home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_combpanel/Reference_combpanel.cnn"
 # Leukemia_Panel_Myeloid_2023_Feb_hg37_sortd.bed (dragen bam reference): "/home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_dragen/Reference_combpanel.cnn"
 
+# For ALP
 #source activate new_base
-#nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_v5_acmg.nf -entry MIPS \
+#nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_bamin.nf -entry MIPS \
 #--bedfile /home/pipelines/mutation_detector_nextflow/bedfile/Leukemia_Panel_Myeloid_2023_Feb_hg37_sortd \
-#--cnvkitRef /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_combpanel/Reference_combpanel.cnn \
+#--cnvkitRef /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_dragen/Reference_combpanel.cnn \
 #--sequences /home/pipelines/NextSeq_mutation_detector_leukemia/sequences/ \
 #--input /home/pipelines/NextSeq_mutation_detector_leukemia/samplesheet.csv \
 #-resume -bg
@@ -40,11 +41,11 @@ echo "WARNING : change the bedfile and the cnv reference"
 #--input /home/pipelines/NextSeq_mutation_detector_leukemia/samplesheet.csv \
 #-resume -bg
 
-# CNV-myeloid panel AL
+# For CNV myeloid bed panel
 source activate new_base
-nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_v5_acmg.nf -entry MIPS \
+nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_bamin.nf -entry MIPS \
 --bedfile /home/pipelines/mutation_detector_nextflow/bedfile/CNV_Small_hg19_newmyeloid_sortd \
---cnvkitRef /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid/Reference_combpanel.cnn \
+--cnvkitRef /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid_dragen/Reference_combpanel.cnn \
 --gene_scatter_list /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid \
 --gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \
 --sequences /home/pipelines/NextSeq_mutation_detector_leukemia/sequences/ \
