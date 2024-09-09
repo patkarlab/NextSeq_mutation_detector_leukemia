@@ -119,6 +119,23 @@ process varscan_run{
 	"""
 }
 
+process DeepSomatic{
+	input:
+		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
+	output:
+		tuple val(Sample), file("*_DS.vcf")
+	script:
+	""" 
+	mkdir output
+	outpath=`realpath output`
+	bam_path=`realpath ${finalBam} | awk 'BEGIN{OFS=FS="/"} {\$NF=""; print \$0}'`
+	vcf_output=${Sample}_DS.vcf
+	control_bam_path=`realpath /home/programs/DeepSomatic/reads/OCIAML3.bam`
+	echo \$bam_path \$outpath \$vcf_output ${finalBam} \${control_bam_path} ${params.genome} ${params.bedfile}.bed
+	${params.deepsomatic} \$bam_path \$outpath \$vcf_output ${finalBam} \${control_bam_path} ${params.genome} ${params.bedfile}.bed
+	"""
+}
+
 process lofreq_run{
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
@@ -529,33 +546,34 @@ workflow MIPS_mocha {
 		.set { samples_ch }
 	main:
 	generatefinalbam(samples_ch)
-	getitd(generatefinalbam.out)
-	hsmetrics_run(generatefinalbam.out)
-	platypus_run(generatefinalbam.out)
-	coverage(generatefinalbam.out)
-	freebayes_run(generatefinalbam.out)
-	mutect2_run(generatefinalbam.out)
-	vardict_run(generatefinalbam.out)
-	varscan_run(generatefinalbam.out)
-	lofreq_run(generatefinalbam.out)
-	strelka_run(generatefinalbam.out)
-	somaticSeqDragen_run(generatefinalbam.out.join(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out))))))))
-	mocha(somaticSeqDragen_run.out)
-	combine_variants(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
-	pindel(generatefinalbam.out)
-	cnvkit_run(generatefinalbam.out)
-	annotSV(cnvkit_run.out)
-	ifcnv_run(generatefinalbam.out.collect())
-	igv_reports(somaticSeqDragen_run.out)
-	update_db(somaticSeqDragen_run.out.collect())
-	coverview_run(generatefinalbam.out)
-	cava(somaticSeqDragen_run.out.join(combine_variants.out))
-	format_somaticseq_combined(somaticSeqDragen_run.out)
-	format_concat_combine_somaticseq(format_somaticseq_combined.out)
-	format_pindel(pindel.out.join(coverage.out))
-	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out))))))
-	update_freq(merge_csv.out.collect())
-	Final_Output(coverage.out.join(cnvkit_run.out))
+	//getitd(generatefinalbam.out)
+	//hsmetrics_run(generatefinalbam.out)
+	//platypus_run(generatefinalbam.out)
+	//coverage(generatefinalbam.out)
+	//freebayes_run(generatefinalbam.out)
+	//mutect2_run(generatefinalbam.out)
+	//vardict_run(generatefinalbam.out)
+	//varscan_run(generatefinalbam.out)
+	DeepSomatic(generatefinalbam.out)
+	//lofreq_run(generatefinalbam.out)
+	//strelka_run(generatefinalbam.out)
+	//somaticSeqDragen_run(generatefinalbam.out.join(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out))))))))
+	//mocha(somaticSeqDragen_run.out)
+	//combine_variants(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
+	//pindel(generatefinalbam.out)
+	//cnvkit_run(generatefinalbam.out)
+	//annotSV(cnvkit_run.out)
+	//ifcnv_run(generatefinalbam.out.collect())
+	//igv_reports(somaticSeqDragen_run.out)
+	//update_db(somaticSeqDragen_run.out.collect())
+	//coverview_run(generatefinalbam.out)
+	//cava(somaticSeqDragen_run.out.join(combine_variants.out))
+	//format_somaticseq_combined(somaticSeqDragen_run.out)
+	//format_concat_combine_somaticseq(format_somaticseq_combined.out)
+	//format_pindel(pindel.out.join(coverage.out))
+	//merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out))))))
+	//update_freq(merge_csv.out.collect())
+	//Final_Output(coverage.out.join(cnvkit_run.out))
 }
 
 workflow.onComplete {
