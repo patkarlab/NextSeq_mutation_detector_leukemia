@@ -290,6 +290,22 @@ process somaticSeq_run {
 	"""
 }
 
+process mocha {
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.png'
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.pdf'
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.tsv'
+	input:
+		tuple val (Sample), file(somaticseqVcf), file (multianno), file (cancervarMultianno)
+	output:
+		tuple val(Sample), file ("*.png"), file ("*.pdf"), file ("*.tsv")
+	script:
+	"""
+	mv ${somaticseqVcf} ${Sample}.somaticseq_old.vcf
+	${params.bedtools} intersect -a ${Sample}.somaticseq_old.vcf -b ${params.mocha_bedfile} -header > ${Sample}.somaticseq.vcf
+	${params.mocha} ${Sample} ./
+	"""
+}
+
 process CombineVariants {
 	input:
 		tuple val (Sample), file(mutectVcf), file(vardictVcf), file(varscanVcf), file(lofreqVcf), file(strelkaVcf), file(freebayesVcf), file(platypusVcf)
@@ -378,8 +394,9 @@ process cnvkit_run {
 	"""
 	#cnvkit.py batch ${finalBam} -r ${params.cnvkitRef} -m hybrid --drop-low-coverage --output-dir ${PWD}/${Sample}/cnvkit/ --diagram --scatter
 	${params.cnvkit_path} ${finalBam} ${params.cnvkitRef} ./
-	/${params.gene_scatter}/custom_scatter_v3.py ${params.gene_scatter}/chr_list_all.txt ./${Sample}.final.cnr ./${Sample}.final.cns ${Sample}
-	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter}/chrwise_list.txt ./${Sample}.final.cnr ./${Sample}.final.cns ${Sample}_chr_
+	# Commenting the following command for CNV myeloid panel, uncomment for the usual AL panel
+	#/${params.gene_scatter}/custom_scatter_v3.py ${params.gene_scatter}/chr_list_all.txt ./${Sample}.final.cnr ./${Sample}.final.cns ${Sample}
+	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ./${Sample}.final.cnr ./${Sample}.final.cns ${Sample}_chr_
 	"""
 }
 
@@ -545,7 +562,7 @@ process update_freq {
 			${params.update_freq_excel} ${PWD}/Final_Output/\${i}/\${i}.xlsx freq.txt
 		fi
 	done
-	"""  	
+	"""
 }
 
 process Final_Output {
@@ -561,7 +578,7 @@ process Final_Output {
 }
 
 workflow MIPS {
-    Channel
+	Channel
 		.fromPath(params.input)
 		.splitCsv(header:false)
 		.flatten()
@@ -585,6 +602,7 @@ workflow MIPS {
 	strelka_run(generatefinalbam.out)
 	somaticSeq_run(generatefinalbam.out.join(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out))))))))
 	CombineVariants(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
+	mocha(somaticSeq_run.out)
 	pindel(generatefinalbam.out)
 	cnvkit_run(generatefinalbam.out)
 	annotSV(cnvkit_run.out)

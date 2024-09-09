@@ -24,7 +24,7 @@ for row in x:
     data['FILTER'].append(rowitems[9])
     info=rowitems[10].split(';')
     formatval=rowitems[-1].split(':')
-    readcounts=formatval[2]
+    readcounts=formatval[1].split(',')
     if len(info)!=5 and info[0]!='SOMATIC':
         data['SOMATIC_FLAG'].append('NON SOMATIC')
         name_toolskey=0
@@ -41,8 +41,8 @@ for row in x:
     data['VariantCaller_Count'].append(info[num_toolskey].split('=')[1])
     vaf="{:.2%}".format(float(info[-1].split('=')[1]))
     data['VAF'].append(vaf)
-    data['REF_COUNT'].append(readcounts.split(',')[1])
-    data['ALT_COUNT'].append(readcounts.split(',')[-1])
+    data['REF_COUNT'].append(int(readcounts[0]) + int(readcounts[1]))
+    data['ALT_COUNT'].append(int(readcounts[2]) + int(readcounts[3]))
             
 df1=df.iloc[:,:5]
 df2=pd.DataFrame(data, columns=data.keys())

@@ -2,15 +2,12 @@
 nextflow.enable.dsl=2
 
 "mkdir Coverview".execute()
-
 log.info """
 STARTING PIPELINE
 =*=*=*=*=*=*=*=*=
-
 Sample list: ${params.input}
 BED file: ${params.bedfile}.bed
 Sequences in:${params.sequences}
-
 """
 
 process trimming_fastq_mcf {
@@ -111,7 +108,6 @@ process sam_conversion{
 	maxForks 15
 	publishDir "$PWD/${Sample}/mapped_reads/", mode: 'copy', pattern: '*.fxd_sorted.bam'
 	publishDir "$PWD/${Sample}/mapped_reads/", mode: 'copy', pattern: '*.fxd_sorted.bam.bai'
-
 	input:
 		tuple val (Sample), file(samFile)
 	output:
@@ -138,7 +134,6 @@ process sam_conversion{
 
 process RealignerTargetCreator {
 	publishDir "${PWD}/${Sample}/gatk38_processing/", mode: 'copy', pattern: '*.intervals'
-	
 	input:
 		tuple val (Sample), file (bamFile), file(bamBai)
 	output:
@@ -191,7 +186,6 @@ process generatefinalbam{
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam'
 	publishDir "$PWD/${Sample}/gatk38_processing/", mode: 'copy', pattern: '*.final.bam.bai'
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam.bai'
-	
 	input:
 		tuple val (Sample), file(alignedRecalibratedBam)
 	output:
@@ -229,12 +223,10 @@ process hsmetrics_run{
 process mutect2_run{
 	maxForks 10
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.mutect2.vcf'
-	
 	input:
 		tuple val(Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
 		tuple val (Sample), file ("*.mutect2.vcf")
-
 	script:
 	"""
 	#${params.java_path}/java -Xmx10G -jar ${params.GATK38_path} -T MuTect2 -R ${params.genome} -I:tumor ${finalBam} -o ${Sample}.mutect2.vcf --dbsnp ${params.site2} -L ${params.bedfile}.bed -nct 25 -contamination 0.02 -mbq 30
@@ -246,12 +238,10 @@ process mutect2_run{
 
 process freebayes_run{
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.freebayes.vcf'
-	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
 		tuple val (Sample), file ("*.freebayes.vcf")
-
 	script:
 	"""
 	${params.freebayes_path} -f ${params.genome} -b ${finalBam} -t ${params.bedfile}.bed > ${Sample}.freebayes.vcf 	
@@ -260,7 +250,6 @@ process freebayes_run{
 
 process vardict_run{
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.vardict.vcf'
-	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -277,12 +266,10 @@ process varscan_run{
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan_snp.vcf.gz'
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan_indel.vcf.gz'
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.varscan.vcf'
-	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
 		tuple val(Sample), file ("*.varscan_snp.vcf"),  file ("*.varscan_indel.vcf"), file("*.varscan.vcf")
-		
 	script:
 	"""
 	${params.samtools} mpileup -f ${params.genome} ${finalBam} > ${Sample}.mpileup
@@ -298,7 +285,6 @@ process varscan_run{
 
 process lofreq_run{
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.lofreq.filtered.vcf'
-	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -314,7 +300,6 @@ process lofreq_run{
 
 process strelka_run{
 	publishDir "$PWD/${Sample}/variants/strelka", mode: 'copy', pattern: '*.strelka.vcf'
-	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -387,6 +372,22 @@ process somaticSeq_run {
 	"""
 }
 
+process mocha {
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.png'
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.pdf'
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.tsv'
+	input:
+		tuple val (Sample), file(somaticseqVcf), file (multianno)
+	output:
+		tuple val(Sample), file ("*.png"), file ("*.pdf"), file ("*.tsv")
+	script:
+	"""
+	mv ${somaticseqVcf} ${Sample}.somaticseq_old.vcf
+	${params.bedtools} intersect -a ${Sample}.somaticseq_old.vcf -b ${params.mocha_bedfile} -header > ${Sample}.somaticseq.vcf
+	${params.mocha} ${Sample} ./
+	"""
+}
+
 process platypus_run{
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.platypus.vcf'
 	input:
@@ -417,7 +418,6 @@ process pindel {
 	publishDir "$PWD/${Sample}/pindel/", mode: 'copy', pattern: '*pindel_SI.vcf'
 	publishDir "$PWD/${Sample}/pindel/", mode: 'copy', pattern: '*.avinput'
 	publishDir "$PWD/${Sample}/pindel/", mode: 'copy', pattern: '*_pindel.hg19_multianno.csv'
-
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -438,7 +438,6 @@ process pindel {
 process format_pindel {
 	publishDir "$PWD/${Sample}/pindel/", mode: 'copy', pattern: '*_final.pindel.csv'
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_final.pindel.csv'
-	
 	input:
 		tuple val (Sample), file(bedfile), file (multianno)
 	output:
@@ -579,7 +578,6 @@ process combine_variants{
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy'
 	publishDir "$PWD/${Sample}/variants/", mode: 'copy', pattern: '*.avinput'
 	publishDir "$PWD/${Sample}/ANNOVAR/", mode: 'copy', pattern: '*.hg19_multianno.csv'
-	
 	input:
 		tuple val (Sample), file(freebayesVcf), file(platypusVcf)
 	output:
@@ -602,10 +600,8 @@ process combine_variants{
 
 process cava {
 	publishDir "$PWD/${Sample}/CAVA/", mode: 'copy'
-	
 	input:
 		tuple val(Sample), file (somaticVcf), file (somaticseqMultianno), file(combinedVcf)
-	
 	output:
 		tuple val(Sample), file ("*.cava.csv")
 	script:
@@ -686,7 +682,7 @@ process update_freq {
 			${params.update_freq_excel} ${PWD}/Final_Output/\${i}/\${i}.xlsx freq.txt
 		fi
 	done
-	"""  	
+	"""
 }
 
 process Final_Output {
@@ -736,6 +732,7 @@ workflow MIPS {
 	lofreq_run(generatefinalbam.out)
 	strelka_run(generatefinalbam.out)
 	somaticSeq_run(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out)))))
+	mocha(somaticSeq_run.out)
 	pindel(generatefinalbam.out)
 	cnvkit_run(generatefinalbam.out)
 	annotSV(cnvkit_run.out)

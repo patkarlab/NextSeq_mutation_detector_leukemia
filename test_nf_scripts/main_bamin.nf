@@ -59,6 +59,7 @@ process hsmetrics_run{
 	"""
 	${params.java_path}/java -jar ${params.picard_path} CollectHsMetrics I= ${finalBam} O= ${Sample}_hsmetrics.txt BAIT_INTERVALS= ${params.bedfile}.interval_list TARGET_INTERVALS= ${params.bedfile}.interval_list R= ${params.genome} VALIDATION_STRINGENCY=LENIENT
 	${params.hsmetrics_all} $PWD/Final_Output/hsmetrics.tsv ${Sample} ${Sample}_hsmetrics.txt
+	
 	"""
 }
 
@@ -151,7 +152,7 @@ process somaticSeqDragen_run {
 	input:
 		tuple val (Sample), file(finalBam), file(finalBamBai), file(oldfinalBam), file(oldfinalBamBai) , file(mutectVcf), file(vardictVcf), file(varscanVcf), file(lofreqVcf), file(strelkaVcf), file(freebayesVcf), file(platypusVcf)
 	output:
-	    tuple val (Sample), file("*.somaticseq.vcf"), file("*.hg19_multianno.csv"), file("*.hg19_multianno.txt.cancervar.ensemble.pred")
+		tuple val (Sample), file("*.somaticseq.vcf"), file("*.hg19_multianno.csv"), file("*.hg19_multianno.txt.cancervar.ensemble.pred")
 	script:
 	"""
 	${params.vcf_sorter_path} ${freebayesVcf} ${Sample}.freebayes.sorted.vcf
@@ -189,6 +190,23 @@ process somaticSeqDragen_run {
 	${params.cancervar} ${Sample}.somaticseq.hg19_multianno.csv ${Sample}
 	"""
 }
+
+process mocha {
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.png'
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.pdf'
+	publishDir "$PWD/Final_Output/${Sample}/MoChA/", mode: 'copy', pattern: '*.tsv'
+	input:
+		tuple val (Sample), file(somaticseqVcf), file (multianno), file (cancervarMultianno)
+	output:
+		tuple val(Sample), file ("*.png"), file ("*.pdf"), file ("*.tsv")
+	script:
+	"""
+	mv ${somaticseqVcf} ${Sample}.somaticseq_old.vcf
+	${params.bedtools} intersect -a ${Sample}.somaticseq_old.vcf -b ${params.mocha_bedfile} -header > ${Sample}.somaticseq.vcf
+	${params.mocha} ${Sample} ./
+	"""
+}
+
 
 process platypus_run{
 	input:
@@ -371,7 +389,6 @@ process combine_variants{
 	${params.vcf_sorter_path} ${params.sequences}/${Sample}.hard-filtered.vcf ${Sample}.dragen.sorted.vcf
 
 	${params.java_path}/java -jar ${params.GATK38_path} -T CombineVariants -R ${params.genome} --variant ${Sample}.mutect.sorted.vcf --variant ${Sample}.vardict.sorted.vcf --variant ${Sample}.varscan.sorted.vcf --variant ${Sample}.lofreq.sorted.vcf --variant ${Sample}.strelka.sorted.vcf --variant ${Sample}.freebayes.sorted.vcf --variant ${Sample}.platypus.sorted.vcf --variant ${Sample}.dragen.sorted.vcf -o ${Sample}.combined.vcf -genotypeMergeOptions UNIQUIFY
-
 	"""
 }
 
@@ -466,8 +483,7 @@ process Final_Output {
 }
 
 workflow MIPS {
-
-    Channel
+	Channel
 		.fromPath(params.input)
 		.splitCsv(header:false)
 		.flatten()
@@ -504,6 +520,43 @@ workflow MIPS {
 	Final_Output(coverage.out.join(cnvkit_run.out))
 }
 
+workflow MIPS_mocha {
+	Channel
+		.fromPath(params.input)
+		.splitCsv(header:false)
+		.flatten()
+		.map{ it }
+		.set { samples_ch }
+	main:
+	generatefinalbam(samples_ch)
+	getitd(generatefinalbam.out)
+	hsmetrics_run(generatefinalbam.out)
+	platypus_run(generatefinalbam.out)
+	coverage(generatefinalbam.out)
+	freebayes_run(generatefinalbam.out)
+	mutect2_run(generatefinalbam.out)
+	vardict_run(generatefinalbam.out)
+	varscan_run(generatefinalbam.out)
+	lofreq_run(generatefinalbam.out)
+	strelka_run(generatefinalbam.out)
+	somaticSeqDragen_run(generatefinalbam.out.join(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out))))))))
+	mocha(somaticSeqDragen_run.out)
+	combine_variants(mutect2_run.out.join(vardict_run.out.join(varscan_run.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
+	pindel(generatefinalbam.out)
+	cnvkit_run(generatefinalbam.out)
+	annotSV(cnvkit_run.out)
+	ifcnv_run(generatefinalbam.out.collect())
+	igv_reports(somaticSeqDragen_run.out)
+	update_db(somaticSeqDragen_run.out.collect())
+	coverview_run(generatefinalbam.out)
+	cava(somaticSeqDragen_run.out.join(combine_variants.out))
+	format_somaticseq_combined(somaticSeqDragen_run.out)
+	format_concat_combine_somaticseq(format_somaticseq_combined.out)
+	format_pindel(pindel.out.join(coverage.out))
+	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out))))))
+	update_freq(merge_csv.out.collect())
+	Final_Output(coverage.out.join(cnvkit_run.out))
+}
 
 workflow.onComplete {
 	log.info ( workflow.success ? "\n\nDone! Output in the 'Final_Output' directory \n" : "Oops .. something went wrong" )
