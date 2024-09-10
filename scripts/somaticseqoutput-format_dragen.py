@@ -5,7 +5,7 @@ args = sys.argv
 
 filename = args[1]
 outfile = args[2]
-vartools=['MuTect2 | ', 'VarScan2 | ', 'VarDict | ', 'LoFreq | ', 'Strelka | ', 'Freebayes | ', 'Platypus | ', 'Dragen | ']
+vartools=['MuTect2 | ', 'VarDict | ', 'LoFreq | ', 'Strelka | ', 'Freebayes | ', 'Platypus | ', 'Dragen | ', 'DeepSomatic | ']
 
 df = pd.read_csv(filename)
 x = df['Otherinfo1']

@@ -18,7 +18,7 @@ for row_nums in df.index:
 		for items in other_info_column_list:
 			value_list = items.split()
 			for values in value_list:
-				if 'MVDLKFP' in values:
+				if 'MDLKFPGS' in values:
 					variants = values.split('=')[1].replace(',','')
 					for callers in variants:
 						variant_sum = variant_sum + int(callers)
