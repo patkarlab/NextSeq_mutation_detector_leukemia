@@ -552,8 +552,8 @@ workflow MIPS_mocha {
 		.set { samples_ch }
 	main:
 	generatefinalbam(samples_ch)
-	//getitd(generatefinalbam.out)
-	//hsmetrics_run(generatefinalbam.out)
+	getitd(generatefinalbam.out)
+	hsmetrics_run(generatefinalbam.out)
 	platypus_run(generatefinalbam.out)
 	coverage(generatefinalbam.out)
 	freebayes_run(generatefinalbam.out)
