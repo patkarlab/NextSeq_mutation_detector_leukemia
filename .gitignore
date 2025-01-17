@@ -4,3 +4,5 @@
 samplesheet.csv
 work/
 sequences/
+*.bam
+*.bam.bai
