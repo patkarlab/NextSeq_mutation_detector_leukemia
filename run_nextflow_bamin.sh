@@ -43,8 +43,8 @@ echo "WARNING : change the bedfile and the cnv reference"
 
 # For CNV myeloid bed panel
 source activate new_base
-nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_bamin.nf -entry MIPS_mocha \
---bedfile /home/pipelines/mutation_detector_nextflow/bedfile/CNV_Small_hg19_newmyeloid_sortd \
+nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_bamin.nf -entry MIPS \
+--bedfile /home/pipelines/mutation_detector_nextflow/bedfile/MYOPOOL_231224_sortd \
 --cnvkitRef /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid_dragen/Reference_combpanel.cnn \
 --gene_scatter_list /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid \
 --gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \

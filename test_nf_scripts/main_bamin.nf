@@ -40,9 +40,9 @@ process generatefinalbam{
 	"""
 	${params.bedtools} sort -i ${params.bedfile}.bed > sorted.bed
 
-	${params.java_path}/java -Xmx16G -jar ${params.abra2_path}/abra2-2.23.jar --in ${params.sequences}/${Sample}*.bam --out ${Sample}.abra.bam --ref ${params.genome} --threads 8 --targets sorted.bed --tmpdir ./ > abra.log
+	${params.java_path}/java -Xmx16G -jar ${params.abra2_path}/abra2-2.23.jar --in ${params.sequences}/${Sample}_tumor.bam --out ${Sample}.abra.bam --ref ${params.genome} --threads 8 --targets sorted.bed --tmpdir ./ > abra.log
 
-	${params.samtools} sort ${params.sequences}/${Sample}*.bam > ${Sample}.old_final.bam
+	${params.samtools} sort ${params.sequences}/${Sample}_tumor.bam > ${Sample}.old_final.bam
 	${params.samtools} index ${Sample}.old_final.bam > ${Sample}.old_final.bam.bai
 	${params.samtools} sort ${Sample}.abra.bam > ${Sample}.final.bam
 	${params.samtools} index ${Sample}.final.bam > ${Sample}.final.bam.bai
@@ -59,7 +59,6 @@ process hsmetrics_run{
 	"""
 	${params.java_path}/java -jar ${params.picard_path} CollectHsMetrics I= ${finalBam} O= ${Sample}_hsmetrics.txt BAIT_INTERVALS= ${params.bedfile}.interval_list TARGET_INTERVALS= ${params.bedfile}.interval_list R= ${params.genome} VALIDATION_STRINGENCY=LENIENT
 	${params.hsmetrics_all} $PWD/Final_Output/hsmetrics.tsv ${Sample} ${Sample}_hsmetrics.txt
-	
 	"""
 }
 
@@ -529,17 +528,17 @@ workflow MIPS {
 	combine_variants(mutect2_run.out.join(vardict_run.out.join(DeepSomatic.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
 	pindel(generatefinalbam.out)
 	cnvkit_run(generatefinalbam.out)
-	annotSV(cnvkit_run.out)
-	ifcnv_run(generatefinalbam.out.collect())
+	//annotSV(cnvkit_run.out)
+	//ifcnv_run(generatefinalbam.out.collect())
 	igv_reports(somaticSeqDragen_run.out)
-	update_db(somaticSeqDragen_run.out.collect())
+	//update_db(somaticSeqDragen_run.out.collect())
 	coverview_run(generatefinalbam.out)
 	cava(somaticSeqDragen_run.out.join(combine_variants.out))
 	format_somaticseq_combined(somaticSeqDragen_run.out)
 	format_concat_combine_somaticseq(format_somaticseq_combined.out)
 	format_pindel(pindel.out.join(coverage.out))
 	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out))))))
-	update_freq(merge_csv.out.collect())
+	//update_freq(merge_csv.out.collect())
 	Final_Output(coverage.out.join(cnvkit_run.out))
 }
 

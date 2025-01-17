@@ -1,0 +1,6 @@
+*.db
+*.cnn
+*.log*
+samplesheet.csv
+work/
+sequences/
