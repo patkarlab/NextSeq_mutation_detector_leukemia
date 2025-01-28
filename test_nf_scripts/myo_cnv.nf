@@ -14,7 +14,7 @@ process cnvkit {
 	"""
 }
 
-workflow {
+workflow CNV {
 	samples_ch = Channel.fromPath(params.input).splitCsv().flatten()
 	// samples_ch.view()
 	cnvkit(samples_ch)

@@ -12,6 +12,38 @@ BED file: ${params.bedfile}.bed
 Sequences in:${params.sequences}
 
 """
+
+
+process filt3r {
+    publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_filt3r_out.csv'
+
+    input:
+        tuple val (Sample)
+
+    output:
+        tuple val (Sample), file("*_filt3r_out.csv")
+
+    script:
+    """
+	${params.bedtools} bamtofastq -i ${params.sequences}/${Sample}_tumor.bam -fq ${Sample}_R1.fastq -fq2 ${Sample}_R2.fastq
+    filt3r -k 12 --ref ${params.filt3r_ref} --sequences ${Sample}_R1.fastq,${Sample}_R2.fastq --nb-threads 64 --vcf --out ${Sample}_filt3r.json
+    python3 /home/diagnostics/pipelines/Validation/scripts/convert_json_to_csv.py ${Sample}_filt3r.json ${Sample}_filt3r_json.csv
+    perl ${params.annovarLatest_path}/convert2annovar.pl -format vcf4 ${Sample}_filt3r.vcf --outfile ${Sample}.filt3r.avinput --withzyg --includeinfo
+    perl ${params.annovarLatest_path}/table_annovar.pl ${Sample}.filt3r.avinput --out ${Sample}.filt3r --remove --protocol refGene,cytoBand,cosmic84,popfreq_all_20150413,avsnp150,intervar_20180118,1000g2015aug_all,clinvar_20170905 --operation g,r,f,f,f,f,f,f --buildver hg19 --nastring '-1' --otherinfo --csvout --thread 10 ${params.annovarLatest_path}/humandb/ --xreffile ${params.annovarLatest_path}/example/gene_fullxref.txt
+
+    # Check if the multianno file is empty
+    if [[ ! -s ${Sample}.filt3r.hg19_multianno.csv ]]; then
+        touch ${Sample}.filt3r__final.csv
+        touch ${Sample}_filt3r_json_filtered.csv
+        touch ${Sample}_filt3r_out.csv
+    else
+        python3 /home/diagnostics/pipelines/Validation/scripts/somaticseqoutput-format_filt3r.py ${Sample}.filt3r.hg19_multianno.csv ${Sample}.filt3r__final.csv
+        python3 /home/diagnostics/pipelines/Validation/scripts/filter_json.py ${Sample}_filt3r_json.csv ${Sample}_filt3r_json_filtered.csv
+        python3 /home/diagnostics/pipelines/Validation/scripts/merge_filt3r_csvs.py ${Sample}.filt3r__final.csv ${Sample}_filt3r_json_filtered.csv ${Sample}_filt3r_out.csv
+    fi
+    """
+}
+
 process getitd {
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_getitd'
 	input:
@@ -294,6 +326,7 @@ process cnvkit_run {
 		tuple val (Sample), file ("*.final.cns"), file ("*.final.cnr"), file ("*gene_scatter.pdf"), file ("*.final-scatter.png"), file ("*.final-diagram.pdf") 
 	script:
 	"""
+	
 	#cnvkit.py batch ${finalBam} -r ${params.cnvkitRef} -m hybrid --drop-low-coverage --output-dir ${PWD}/${Sample}/cnvkit/ --diagram --scatter
 	${params.cnvkit_path} ${finalBam} ${params.cnvkitRef} ./
 	# Commenting the following command for CNV myeloid panel, uncomment for the usual AL panel
@@ -456,7 +489,7 @@ process format_concat_combine_somaticseq {
 
 process merge_csv {
 	input:
-		tuple val (Sample), file (finalConcat), file (artefacts), file (cavaCsv), file (coverviewRegions) ,file (finalPindel), file(finalCns), file(finalCnr), file(geneScatter), file (finalScatter), file (finalDiagram), file (somaticVcf), file (somaticseqMultianno), file (cancervarMultianno)
+		tuple val (Sample), file (finalConcat), file (artefacts), file (cavaCsv), file (coverviewRegions) ,file (finalPindel), file(finalCns), file(finalCnr), file(geneScatter), file (finalScatter), file (finalDiagram), file (somaticVcf), file (somaticseqMultianno), file (cancervarMultianno), file(filt3rCsv)
 	output:
 		val Sample
 	script:
@@ -469,7 +502,8 @@ process merge_csv {
 	${params.vep_script_path} ${PWD}/Final_Output/${Sample}/${Sample}.somaticseq.vcf ${PWD}/Final_Output/${Sample}/${Sample}
 	${params.vep_extract_path} ${Sample}.final.concat_append.csv ${PWD}/Final_Output/${Sample}/${Sample}_vep_delheaders.txt > ${Sample}.vep
 	${params.cancervar_extract} ${cancervarMultianno} ${Sample}.vep ${Sample}_cancervar.csv
-	${params.pcgr_cpsr_script_path} ${PWD}/Final_Output/${Sample}/${Sample}.xlsx ${Sample}_cancervar.csv
+	${params.pcgr_cpsr_script_path} ${PWD}/Final_Output/${Sample}/${Sample}.xlsx ${Sample}_cancervar.csv ${filt3rCsv}
+
 	mv output_temp.xlsx ${PWD}/Final_Output/${Sample}/${Sample}.xlsx
 	"""
 }
@@ -511,7 +545,7 @@ workflow MIPS {
 		.map{ it }
 		.set { samples_ch }
 	
-	main:
+	main:	
 	generatefinalbam(samples_ch)
 	getitd(generatefinalbam.out)
 	hsmetrics_run(generatefinalbam.out)
@@ -550,6 +584,7 @@ workflow MIPS_mocha {
 		.map{ it }
 		.set { samples_ch }
 	main:
+	filt3r(samples_ch)
 	generatefinalbam(samples_ch)
 	getitd(generatefinalbam.out)
 	hsmetrics_run(generatefinalbam.out)
@@ -563,7 +598,7 @@ workflow MIPS_mocha {
 	lofreq_run(generatefinalbam.out)
 	strelka_run(generatefinalbam.out)
 	somaticSeqDragen_run(generatefinalbam.out.join(mutect2_run.out.join(vardict_run.out.join(DeepSomatic.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out))))))))
-	mocha(somaticSeqDragen_run.out)
+	//mocha(somaticSeqDragen_run.out)
 	combine_variants(mutect2_run.out.join(vardict_run.out.join(DeepSomatic.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
 	pindel(generatefinalbam.out)
 	cnvkit_run(generatefinalbam.out)
@@ -576,7 +611,7 @@ workflow MIPS_mocha {
 	format_somaticseq_combined(somaticSeqDragen_run.out)
 	format_concat_combine_somaticseq(format_somaticseq_combined.out)
 	format_pindel(pindel.out.join(coverage.out))
-	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out))))))
+	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out.join(filt3r.out)))))))
 	update_freq(merge_csv.out.collect())
 	Final_Output(coverage.out.join(cnvkit_run.out))
 }
