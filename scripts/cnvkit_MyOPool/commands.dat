@@ -1,0 +1,4 @@
+source activate cnvkit
+cnvkit.py target MYOPOOL_240125_sortd.bed -o targets.bed
+for i in `cat ../../samplesheet.csv`; do cnvkit.py coverage ${i}_tumor.bam targets.bed -o ${i}.targetcoverage.cnn; done
+cnvkit.py reference  *targetcoverage.cnn -f /home/reference_genomes/hg19_broad/hg19_all.fasta -o Reference_combpanel.cnn
