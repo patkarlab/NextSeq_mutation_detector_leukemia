@@ -11,9 +11,10 @@ coverview_path = args[5]
 pindel_path = args[6]
 cnvkit_path = args[7]
 pharma_marker_path = args[8]
+pindel_ubtf_path = args[9]
 
 #csvfilenames=[filepath+sample+'.final.concat.csv',cava_path+sample+'.cava.csv',pindel_path,coverview_path,filepath+sample+'.artefacts.csv',cnvkit_path,pharma_marker_path]
-csvfilenames=[cava_path+sample+'.cava.csv',pindel_path,coverview_path,filepath+sample+'.artefacts.csv',cnvkit_path,pharma_marker_path]
+csvfilenames=[cava_path+sample+'.cava.csv',pindel_path,coverview_path,filepath+sample+'.artefacts.csv',cnvkit_path,pharma_marker_path,pindel_ubtf_path]
 
 writer = pd.ExcelWriter(outfile)
 for csvfilename in csvfilenames:

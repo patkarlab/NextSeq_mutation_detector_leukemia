@@ -42,25 +42,25 @@ echo "WARNING : change the bedfile and the cnv reference"
 #-resume -bg
 
 # For CNV myeloid bed panel
-# source activate new_base
-# nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_bamin.nf -entry MIPS_mocha \
-# --bedfile /home/pipelines/mutation_detector_nextflow/bedfile/CNV_Small_hg19_newmyeloid_ubtf_sortd \
-# --cnvkitRef /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid_dragen/Reference_combpanel.cnn \
-# --gene_scatter_list /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid \
-# --gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \
-# --sequences /home/pipelines/NextSeq_mutation_detector_leukemia/sequences/ \
-# --input /home/pipelines/NextSeq_mutation_detector_leukemia/samplesheet.csv \
-# -resume -bg
-# conda deactivate
+#source activate new_base
+#nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_bamin.nf -entry MIPS_mocha \
+#--bedfile /home/pipelines/mutation_detector_nextflow/bedfile/CNV_Small_hg19_newmyeloid_ubtf_sortd \
+#--bedfile_exonwise  /home/pipelines/mutation_detector_nextflow/bedfile/MYOPOOL_231224_Rebalanced_sortd \
+#--cnvkitRef /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid_dragen/Reference_combpanel.cnn \
+#--gene_scatter_list /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid \
+#--gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \
+#--sequences /home/pipelines/NextSeq_mutation_detector_leukemia/sequences/ \
+#--input /home/pipelines/NextSeq_mutation_detector_leukemia/samplesheet.csv \
+#-resume -bg
+#conda deactivate
 
 # For MyOPool
 source activate new_base
 nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/main_bamin.nf -entry MIPS_mocha \
 --bedfile /home/pipelines/mutation_detector_nextflow/bedfile/MYOPOOL_240125_sortd \
---cnvkitRef /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_MyOPool/Reference_combpanel.cnn \
---gene_scatter_list /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_MyOPool \
+--bedfile_exonwise  /home/pipelines/mutation_detector_nextflow/bedfile/MYOPOOL_231224_Rebalanced_sortd \
+--cnvkitRef /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_MyOPool_exonwise/Reference_combpanel.cnn \
+--gene_scatter_list /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_MyOPool_exonwise/ \
 --gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \
---sequences /home/pipelines/NextSeq_mutation_detector_leukemia/sequences/ \
---input /home/pipelines/NextSeq_mutation_detector_leukemia/samplesheet.csv \
--resume -bg
+-resume -bg 
 conda deactivate

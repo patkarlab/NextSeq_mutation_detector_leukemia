@@ -47,7 +47,5 @@ nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config r
 --cnvkitRef /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid/Reference_combpanel.cnn \
 --gene_scatter_list /home/pipelines/MMpanel/scripts/cnvkit_cnvmyeloid \
 --gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \
---sequences /home/pipelines/NextSeq_mutation_detector_leukemia/sequences/ \
---input /home/pipelines/NextSeq_mutation_detector_leukemia/samplesheet.csv \
 -resume -bg
 conda deactivate

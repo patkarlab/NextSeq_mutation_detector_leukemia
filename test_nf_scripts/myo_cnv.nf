@@ -14,10 +14,70 @@ process cnvkit {
 	"""
 }
 
+process hsmetrics_run{
+	// publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_hsmetrics*.txt'
+	input:
+		tuple val(Sample), file(finalBam), file (finalBamBai)
+	output:
+		path ("${Sample}_hsmetrics.txt") , emit : genewise
+		path ("${Sample}_hsmetrics_exonwise.txt"), emit : exonwise
+	script:
+	"""
+	${params.java_path}/java -jar ${params.picard_path} CollectHsMetrics I= ${finalBam} O= ${Sample}_hsmetrics.txt BAIT_INTERVALS= ${params.bedfile}.interval_list TARGET_INTERVALS= ${params.bedfile}.interval_list R= ${params.genome} VALIDATION_STRINGENCY=LENIENT
+	${params.java_path}/java -jar ${params.picard_path} CollectHsMetrics I= ${finalBam} O= ${Sample}_hsmetrics_exonwise.txt BAIT_INTERVALS= ${params.bedfile_exonwise}.interval_list TARGET_INTERVALS= ${params.bedfile_exonwise}.interval_list R= ${params.genome} VALIDATION_STRINGENCY=LENIENT
+
+	"""
+}
+
+process generatefinalbam{
+	// publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam'
+	// publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam.bai'
+	input:
+		val Sample
+	output:
+		tuple val(Sample), file ("*.old_final.bam"), file ("*.old_final.bam.bai")
+		
+	script:
+	"""
+	#${params.bedtools} sort -i ${params.bedfile}.bed > sorted.bed
+	#${params.java_path}/java -Xmx16G -jar ${params.abra2_path}/abra2-2.23.jar --in ${params.sequences}/${Sample}_tumor.bam --out ${Sample}.abra.bam --ref ${params.genome} --threads 8 --targets sorted.bed --tmpdir ./ > abra.log
+	${params.samtools} sort ${params.sequences}/${Sample}_tumor.bam > ${Sample}.old_final.bam
+	${params.samtools} index ${Sample}.old_final.bam > ${Sample}.old_final.bam.bai
+	#${params.samtools} sort ${Sample}.tumor.bam > ${Sample}.final.bam
+	#${params.samtools} index ${Sample}.final.bam > ${Sample}.final.bam.bai
+	"""
+}
+
+process hsmetrics_collect {
+	input:
+		file (GeneWise) 
+		file (ExonWise)
+	script:
+	"""
+	echo -e "Sample name\tOn target\tOff target" > hsmetrics_genwise.txt
+	for i in ${GeneWise}
+	do
+		samp_name=\$(basename -s .txt \${i})
+		grep -v '#' \${i} | awk -v name=\${samp_name} 'BEGIN{FS="\t"; OFS="\t"}NR==3{ print name,\$7,\$8}' >> hsmetrics_genwise.txt
+	done
+	#ls ${ExonWise} 
+	"""
+}
+
 workflow CNV {
 	samples_ch = Channel.fromPath(params.input).splitCsv().flatten()
 	// samples_ch.view()
-	cnvkit(samples_ch)
+	//cnvkit(samples_ch)
+	generatefinalbam(samples_ch)
+	hsmetrics_run(generatefinalbam.out)
+	// Run the perSampleProcess for each sample
+	ch_results_genewise = hsmetrics_run.out.genewise.collect()
+	ch_results_exon = hsmetrics_run.out.exonwise.collect()
+
+	hsmetrics_collect(ch_results_genewise, ch_results_exon)
+	// hsmetrics_collect(ch_results_exon, "Exonwise")
+
+	// Collect all output files before processing them together
 }
 
 workflow.onComplete {
