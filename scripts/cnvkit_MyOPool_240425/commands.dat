@@ -1,0 +1,6 @@
+#Copy bam and bam.bai files to the current directory
+source activate cnvkit
+ln -s ../cnvkit_myeloidpanel_150125/targets.bed
+#Create "samples.dat"
+for i in `cat samples.dat`; do cnvkit.py coverage ${i}_tumor.bam targets.bed -o ${i}.targetcoverage.cnn; done
+cnvkit.py reference  *targetcoverage.cnn -f /home/reference_genomes/hg19_broad/hg19_all.fasta -o Reference_combpanel.cnn
