@@ -1,6 +1,21 @@
 #!/usr/bin/env nextflow
 nextflow.enable.dsl=2
 
+process MARKDUPLICATES {
+	tag "${Sample}"
+	publishDir "/home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_myeloidpanel_240425_markduplicates/", mode: 'copy', pattern: '*'
+	input:
+		val (Sample)
+	output:
+		tuple val(Sample), file ("${Sample}_MD.bam"), file ("${Sample}_MD.bai")
+	script:
+	"""
+	${params.java_path}/java -jar ${params.picard_path} MarkDuplicates \
+	INPUT=${params.sequences}/${Sample}_tumor.bam OUTPUT=${Sample}_MD.bam REMOVE_DUPLICATES=false \
+	METRICS_FILE=BNC1.txt CREATE_INDEX=true
+	"""
+}
+
 process cnvkit {
 	publishDir "$PWD/Final_Output/${Sample}/", mode : 'copy'
 	input:
@@ -9,8 +24,13 @@ process cnvkit {
 		tuple val(Sample), file("*scatter.png"), file("*chr_gene_scatter.pdf")
 	script:
 	"""
-	${params.cnvkit_path} ${params.sequences}/${Sample}_tumor.bam ${params.cnvkitRef} ./
-	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ./${Sample}_tumor.cnr ./${Sample}_tumor.cns ${Sample}_chr_
+	${params.java_path}/java -jar ${params.picard_path} MarkDuplicates \
+	INPUT=${params.sequences}/${Sample}_tumor.bam OUTPUT=${Sample}_MD.bam REMOVE_DUPLICATES=false \
+	METRICS_FILE=BNC1.txt CREATE_INDEX=true
+
+	#${params.cnvkit_path} ${params.sequences}/${Sample}_MD.bam ${params.cnvkitRef} ./
+	${params.cnvkit_path} ${Sample}_MD.bam ${params.cnvkitRef} ./
+	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ./${Sample}_MD.cnr ./${Sample}_MD.cns ${Sample}_chr_
 	"""
 }
 
@@ -66,16 +86,16 @@ process hsmetrics_collect {
 
 workflow CNV {
 	samples_ch = Channel.fromPath(params.input).splitCsv().flatten()
-	// samples_ch.view()
-	//cnvkit(samples_ch)
-	generatefinalbam(samples_ch)
-	hsmetrics_run(generatefinalbam.out)
+	// MARKDUPLICATES(samples_ch)
+	cnvkit(samples_ch)
+	// generatefinalbam(samples_ch)
+	// hsmetrics_run(generatefinalbam.out)
 	// Run the perSampleProcess for each sample
-	ch_results_genewise = hsmetrics_run.out.genewise.collect()
-	ch_results_exon = hsmetrics_run.out.exonwise.collect()
+	// ch_results_genewise = hsmetrics_run.out.genewise.collect()
+	// ch_results_exon = hsmetrics_run.out.exonwise.collect()
 
-	hsmetrics_collect(ch_results_genewise, ch_results_exon)
-	// hsmetrics_collect(ch_results_exon, "Exonwise")
+	// hsmetrics_collect(ch_results_genewise, ch_results_exon)
+	//hsmetrics_collect(ch_results_exon, "Exonwise")
 
 	// Collect all output files before processing them together
 }
