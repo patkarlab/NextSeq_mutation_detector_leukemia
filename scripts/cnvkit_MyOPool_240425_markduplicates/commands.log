@@ -1,0 +1,8 @@
+source activate cnvkit
+ln -s ../cnvkit_myeloidpanel_150125/
+
+#get MD .bam file using
+nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run test_nf_scripts/myo_cnv.nf -entry CNV --sequences /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_myeloidpanel_240425_markduplicates/ --input /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_myeloidpanel_240425/samples.dat -resume -bg
+
+for i in `cat ../cnvkit_myeloidpanel_240425/samples.dat`; do cnvkit.py coverage ${i}_MD.bam targets.bed -o ${i}.targetcoverage.cnn; done
+cnvkit.py reference  *targetcoverage.cnn -f /home/reference_genomes/hg19_broad/hg19_all.fasta -o Reference_combpanel.cnn
