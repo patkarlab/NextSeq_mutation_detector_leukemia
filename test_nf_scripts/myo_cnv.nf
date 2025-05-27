@@ -24,13 +24,13 @@ process cnvkit {
 		tuple val(Sample), file("*scatter.png"), file("*chr_gene_scatter.pdf")
 	script:
 	"""
-	${params.java_path}/java -jar ${params.picard_path} MarkDuplicates \
-	INPUT=${params.sequences}/${Sample}_tumor.bam OUTPUT=${Sample}_MD.bam REMOVE_DUPLICATES=false \
-	METRICS_FILE=BNC1.txt CREATE_INDEX=true
+	#${params.java_path}/java -jar ${params.picard_path} MarkDuplicates \
+	#INPUT=${params.sequences}/${Sample}_tumor.bam OUTPUT=${Sample}_MD.bam REMOVE_DUPLICATES=false \
+	#METRICS_FILE=BNC1.txt CREATE_INDEX=true
 
-	#${params.cnvkit_path} ${params.sequences}/${Sample}_MD.bam ${params.cnvkitRef} ./
-	${params.cnvkit_path} ${Sample}_MD.bam ${params.cnvkitRef} ./
-	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ./${Sample}_MD.cnr ./${Sample}_MD.cns ${Sample}_chr_
+	${params.cnvkit_path} ${params.sequences}/${Sample}_tumor.bam ${params.cnvkitRef} ./
+	#${params.cnvkit_path} ${Sample}_MD.bam ${params.cnvkitRef} ./
+	${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ./${Sample}_tumor.cnr ./${Sample}_tumor.cns ${Sample}_chr_
 	"""
 }
 

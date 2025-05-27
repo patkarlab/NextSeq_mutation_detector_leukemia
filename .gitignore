@@ -6,3 +6,5 @@ work/
 sequences/
 *.bam
 *.bam.bai
+.nextflow*
+Final_Output*

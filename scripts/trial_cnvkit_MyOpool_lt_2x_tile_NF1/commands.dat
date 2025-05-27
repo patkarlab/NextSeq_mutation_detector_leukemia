@@ -1,0 +1,10 @@
+
+# Make links for the bam and bai files
+#for i in `cat ../../samplesheet.csv`; do ln -s /home/pipelines/MMpanel/Final_Output/$i/$i.final.bam ./ ; done
+#for i in `cat ../../samplesheet.csv`; do ln -s /home/pipelines/MMpanel/Final_Output/$i/$i.final.bam.bai ./ ; done
+
+# Make the cnvkit reference cnn files
+source activate cnvkit
+cnvkit.py target MYOPOOL_231224_ls_2_Rebalanced_NF1_sortd.bed -o targets.bed
+for i in `cat samples.dat`; do cnvkit.py coverage ${i}_tumor.bam targets.bed -o ${i}.targetcoverage.cnn; done
+cnvkit.py reference  *targetcoverage.cnn -f /home/reference_genomes/hg19_broad/hg19_all.fasta -o Reference_combpanel.cnn
