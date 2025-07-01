@@ -2,30 +2,24 @@
 nextflow.enable.dsl=2
 
 "mkdir Coverview".execute()
-
 log.info """
 STARTING PIPELINE
 =*=*=*=*=*=*=*=*=
-
 Sample list: ${params.input}
 BED file: ${params.bedfile}.bed
 Sequences in:${params.sequences}
-
 """
 
-
 process filt3r {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_filt3r_out.csv'
-
 	input:
-		val (Sample)
-
+		tuple val(Sample), file (bamin), file(baiin)
 	output:
 		tuple val (Sample), file("*_filt3r_out.csv")
-
 	script:
 	"""
-	${params.bedtools} bamtofastq -i ${params.sequences}/${Sample}_tumor.bam -fq ${Sample}_R1.fastq -fq2 ${Sample}_R2.fastq
+	${params.bedtools} bamtofastq -i ${bamin} -fq ${Sample}_R1.fastq -fq2 ${Sample}_R2.fastq
 	filt3r -k 12 --ref ${params.filt3r_ref} --sequences ${Sample}_R1.fastq,${Sample}_R2.fastq --nb-threads 64 --vcf --out ${Sample}_filt3r.json
 	python3 /home/diagnostics/pipelines/Validation/scripts/convert_json_to_csv.py ${Sample}_filt3r.json ${Sample}_filt3r_json.csv
 	perl ${params.annovarLatest_path}/convert2annovar.pl -format vcf4 ${Sample}_filt3r.vcf --outfile ${Sample}.filt3r.avinput --withzyg --includeinfo
@@ -45,6 +39,7 @@ process filt3r {
 }
 
 process getitd {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_getitd'
 	input:
 		tuple val(Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
@@ -61,20 +56,20 @@ process getitd {
 }
 
 process generatefinalbam{
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam'
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam.bai'
 	input:
-		val Sample
+		tuple val(Sample), file (bamin), file(baiin)
 	output:
 		tuple val(Sample), file ("*.final.bam"), file ("*.final.bam.bai"), file ("*.old_final.bam"), file ("*.old_final.bam.bai")
-		
 	script:
 	"""
 	${params.bedtools} sort -i ${params.bedfile}.bed > sorted.bed
 
-	${params.java_path}/java -Xmx16G -jar ${params.abra2_path}/abra2-2.23.jar --in ${params.sequences}/${Sample}_tumor.bam --out ${Sample}.abra.bam --ref ${params.genome} --threads 8 --targets sorted.bed --tmpdir ./ > abra.log
+	${params.java_path}/java -Xmx16G -jar ${params.abra2_path}/abra2-2.23.jar --in ${bamin} --out ${Sample}.abra.bam --ref ${params.genome} --threads 8 --targets sorted.bed --tmpdir ./ > abra.log
 
-	${params.samtools} sort ${params.sequences}/${Sample}_tumor.bam > ${Sample}.old_final.bam
+	${params.samtools} sort ${bamin} > ${Sample}.old_final.bam
 	${params.samtools} index ${Sample}.old_final.bam > ${Sample}.old_final.bam.bai
 	${params.samtools} sort ${Sample}.abra.bam > ${Sample}.final.bam
 	${params.samtools} index ${Sample}.final.bam > ${Sample}.final.bam.bai
@@ -82,6 +77,7 @@ process generatefinalbam{
 }
 
 process hsmetrics_run{
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_hsmetrics*.txt'
 	input:
 		tuple val(Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
@@ -125,6 +121,7 @@ process hsmetrics_collect {
 }
 
 process mutect2_run{
+	tag "${Sample}"
 	maxForks 10	
 	input:
 		tuple val(Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
@@ -140,6 +137,7 @@ process mutect2_run{
 }
 
 process freebayes_run{	
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -150,7 +148,8 @@ process freebayes_run{
 	"""
 }
 
-process vardict_run{	
+process vardict_run{
+	tag "${Sample}"	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -161,7 +160,8 @@ process vardict_run{
 	"""
 }
 
-process varscan_run{	
+process varscan_run{
+	tag "${Sample}"	
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -181,6 +181,7 @@ process varscan_run{
 }
 
 process DeepSomatic{
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -198,6 +199,7 @@ process DeepSomatic{
 }
 
 process lofreq_run{
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -212,6 +214,7 @@ process lofreq_run{
 }
 
 process strelka_run{
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -226,6 +229,7 @@ process strelka_run{
 }
 
 process somaticSeqDragen_run {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.somaticseq.vcf'
 	input:
 		tuple val (Sample), file(finalBam), file(finalBamBai), file(oldfinalBam), file(oldfinalBamBai) , file(mutectVcf), file(vardictVcf), file(DeepSomaticVcf), file(lofreqVcf), file(strelkaVcf), file(freebayesVcf), file(platypusVcf)
@@ -235,24 +239,20 @@ process somaticSeqDragen_run {
 	"""
 	${params.vcf_sorter_path} ${freebayesVcf} ${Sample}.freebayes.sorted.vcf
 	${params.vcf_sorter_path} ${platypusVcf} ${Sample}.platypus.sorted.vcf
-	${params.vcf_sorter_path} ${params.sequences}/${Sample}.hard-filtered.vcf ${Sample}.dragen.sorted.vcf
 	${params.vcf_sorter_path} ${DeepSomaticVcf} ${Sample}.deepsomatic.sorted.vcf
 
 	python3 ${params.splitvcf_path} -infile ${Sample}.platypus.sorted.vcf -snv ${Sample}_platypus_cnvs.vcf -indel ${Sample}_platypus_indels.vcf
 	python3 ${params.splitvcf_path} -infile ${Sample}.freebayes.sorted.vcf -snv ${Sample}_freebayes_cnvs.vcf -indel ${Sample}_freebayes_indels.vcf
-	python3 ${params.splitvcf_path} -infile ${Sample}.dragen.sorted.vcf -snv ${Sample}_dragen_cnvs.vcf -indel ${Sample}_dragen_indels.vcf
 	python3 ${params.splitvcf_path} -infile ${Sample}.deepsomatic.sorted.vcf -snv ${Sample}_deepsomatic_snvs.vcf -indel ${Sample}_deepsomatic_indels.vcf
 
 	${params.vcf_sorter_path} ${Sample}_platypus_cnvs.vcf ${Sample}_platypus_cnvs_sort.vcf
 	${params.vcf_sorter_path} ${Sample}_platypus_indels.vcf ${Sample}_platypus_indels_sort.vcf
 	${params.vcf_sorter_path} ${Sample}_freebayes_cnvs.vcf ${Sample}_freebayes_cnvs_sort.vcf
 	${params.vcf_sorter_path} ${Sample}_freebayes_indels.vcf ${Sample}_freebayes_indels_sort.vcf
-	${params.vcf_sorter_path} ${Sample}_dragen_cnvs.vcf ${Sample}_dragen_cnvs_sort.vcf
-	${params.vcf_sorter_path} ${Sample}_dragen_indels.vcf ${Sample}_dragen_indels_sort.vcf
 	${params.vcf_sorter_path} ${Sample}_deepsomatic_snvs.vcf ${Sample}_deepsomatic_snvs_sort.vcf
 	${params.vcf_sorter_path} ${Sample}_deepsomatic_indels.vcf ${Sample}_deepsomatic_indels_sort.vcf
 
-	somaticseq_parallel.py --output-directory ./${Sample}.somaticseq --genome-reference ${params.genome} --inclusion-region ${params.bedfile}.bed --threads 25 --algorithm xgboost  --dbsnp-vcf  /home/reference_genomes/dbSNPGATK/dbsnp_138.hg19.somatic.vcf single --bam-file ${finalBam} --mutect2-vcf ${mutectVcf} --vardict-vcf ${vardictVcf} --lofreq-vcf ${lofreqVcf} --strelka-vcf ${strelkaVcf} --sample-name ${Sample} --arbitrary-snvs ${Sample}_freebayes_cnvs_sort.vcf ${Sample}_platypus_cnvs_sort.vcf ${Sample}_dragen_cnvs_sort.vcf ${Sample}_deepsomatic_snvs_sort.vcf --arbitrary-indels ${Sample}_freebayes_indels_sort.vcf ${Sample}_platypus_indels_sort.vcf ${Sample}_dragen_indels_sort.vcf ${Sample}_deepsomatic_indels_sort.vcf
+	somaticseq_parallel.py --output-directory ./${Sample}.somaticseq --genome-reference ${params.genome} --inclusion-region ${params.bedfile}.bed --threads 25 --algorithm xgboost  --dbsnp-vcf  /home/reference_genomes/dbSNPGATK/dbsnp_138.hg19.somatic.vcf single --bam-file ${finalBam} --mutect2-vcf ${mutectVcf} --vardict-vcf ${vardictVcf} --lofreq-vcf ${lofreqVcf} --strelka-vcf ${strelkaVcf} --sample-name ${Sample} --arbitrary-snvs ${Sample}_freebayes_cnvs_sort.vcf ${Sample}_platypus_cnvs_sort.vcf ${Sample}_deepsomatic_snvs_sort.vcf --arbitrary-indels ${Sample}_freebayes_indels_sort.vcf ${Sample}_platypus_indels_sort.vcf ${Sample}_deepsomatic_indels_sort.vcf
 	
 	${params.vcf_sorter_path} ./${Sample}.somaticseq/Consensus.sSNV.vcf ./${Sample}.somaticseq/somaticseq_snv.vcf
 	bgzip -c ./${Sample}.somaticseq/somaticseq_snv.vcf > ./${Sample}.somaticseq/somaticseq_snv.vcf.gz
@@ -264,13 +264,12 @@ process somaticSeqDragen_run {
 	
 	${params.bcftools_path} concat -a ./${Sample}.somaticseq/somaticseq_snv.vcf.gz ./${Sample}.somaticseq/somaticseq_indel.vcf.gz -o ./${Sample}.somaticseq.vcf
 
-	sed -i 's/##INFO=<ID=MDLK0123,Number=8,Type=Integer,Description="Calling decision of the 8 algorithms: MuTect, VarDict, LoFreq, Strelka, SnvCaller_0, SnvCaller_1, SnvCaller_2, SnvCaller_3">/##INFO=<ID=MDLKFPGS,Number=8,Type=String,Description="Calling decision of the 8 algorithms: MuTect, VarDict, LoFreq, Strelka, Freebayes, Platypus, Dragen, DeepSomatic">/g' ${Sample}.somaticseq.vcf
+	sed -i 's/##INFO=<ID=MDLK012,Number=7,Type=Integer,Description="Calling decision of the 7 algorithms: MuTect, VarDict, LoFreq, Strelka, SnvCaller_0, SnvCaller_1, SnvCaller_2">/##INFO=<ID=MDLKFPGS,Number=7,Type=String,Description="Calling decision of the 7 algorithms: MuTect, VarDict, LoFreq, Strelka, Freebayes, Platypus, DeepSomatic">/g' ${Sample}.somaticseq.vcf
 
-	sed -i 's/MDLK0123/MDLKFPGS/g' ${Sample}.somaticseq.vcf
+	sed -i 's/MDLK012/MDLKFPS/g' ${Sample}.somaticseq.vcf
 	perl ${params.annovarLatest_path}/convert2annovar.pl -format vcf4 ${Sample}.somaticseq.vcf  --outfile ${Sample}.somaticseq.avinput --withzyg --includeinfo
 	perl ${params.annovarLatest_path}/table_annovar.pl ${Sample}.somaticseq.avinput --out ${Sample}.somaticseq --remove --protocol refGene,cytoBand,cosmic84,popfreq_all_20150413,avsnp150,intervar_20180118,1000g2015aug_all,clinvar_20170905 --operation g,r,f,f,f,f,f,f --buildver hg19 --nastring '-1' --otherinfo --csvout --thread 10 ${params.annovarLatest_path}/humandb/ --xreffile ${params.annovarLatest_path}/example/gene_fullxref.txt
 	${params.cancervar} ${Sample}.somaticseq.hg19_multianno.csv ${Sample}
-
 	"""
 }
 
@@ -290,8 +289,8 @@ process mocha {
 	"""
 }
 
-
 process platypus_run{
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBams), file(finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -303,6 +302,7 @@ process platypus_run{
 }
 
 process coverage {
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBams), file(finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -318,6 +318,7 @@ process coverage {
 }
 
 process pindel {
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -336,6 +337,7 @@ process pindel {
 }
 
 process pindel_UBTF {
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(finalBam), file (finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -354,6 +356,7 @@ process pindel_UBTF {
 }
 
 process format_pindel {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_final.pindel.csv'
 	input:
 		tuple val (Sample), file (pindelMultianno), file (countsBed), file (pindelCountsBed), file (pindelUBTFCountsBed)
@@ -366,6 +369,7 @@ process format_pindel {
 }
 
 process format_pindel_UBTF {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_final.pindel_ubtf.csv'
 	input:
 		tuple val (Sample), file (pindelMultianno), file (countsBed), file (pindelCountsBed), file (pindelUBTFCountsBed)
@@ -378,10 +382,10 @@ process format_pindel_UBTF {
 }
 
 process cnvkit_run {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*gene_scatter.pdf'
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final-scatter.png'
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final-diagram.pdf'
-
 	input:
 		tuple val (Sample), file(finalBam), file(finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
 	output:
@@ -449,6 +453,7 @@ process update_db {
 }
 
 process annotSV {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*_AnnotSV.tsv'
 	input:
 		tuple val (Sample), file (finalCns), file (finalCnr), file (geneScatter), file (finalScatter), file (finalDiagram)
@@ -462,6 +467,7 @@ process annotSV {
 }
 
 process igv_reports {
+	tag "${Sample}"
 	input:
 		tuple val(Sample), file (somaticVcf), file (somaticseqMultianno), file (cancervarMultianno)	
 	output:
@@ -475,7 +481,7 @@ process igv_reports {
 }
 
 process coverview_run {
-	executor="local"
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: "*.coverview_regions.csv"
 	input:
 		tuple val (Sample), file(finalBam), file(finalBamBai), file (oldfinalBam), file (oldfinalBamBai)
@@ -489,6 +495,7 @@ process coverview_run {
 }
 
 process combine_variants{
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(mutectVcf), file(vardictVcf), file(DeepSomaticVcf), file(lofreqVcf), file(strelkaVcf), file(freebayesVcf), file(platypusVcf)
 	output:
@@ -502,17 +509,15 @@ process combine_variants{
 	${params.vcf_sorter_path} ${strelkaVcf} ${Sample}.strelka.sorted.vcf
 	${params.vcf_sorter_path} ${freebayesVcf} ${Sample}.freebayes.sorted.vcf
 	${params.vcf_sorter_path} ${platypusVcf} ${Sample}.platypus.sorted.vcf
-	${params.vcf_sorter_path} ${params.sequences}/${Sample}.hard-filtered.vcf ${Sample}.dragen.sorted.vcf
 
-	${params.java_path}/java -jar ${params.GATK38_path} -T CombineVariants -R ${params.genome} --variant ${Sample}.mutect.sorted.vcf --variant ${Sample}.vardict.sorted.vcf --variant ${Sample}.DeepSomatic.sorted.vcf --variant ${Sample}.lofreq.sorted.vcf --variant ${Sample}.strelka.sorted.vcf --variant ${Sample}.freebayes.sorted.vcf --variant ${Sample}.platypus.sorted.vcf --variant ${Sample}.dragen.sorted.vcf -o ${Sample}.combined.vcf -genotypeMergeOptions UNIQUIFY
+	${params.java_path}/java -jar ${params.GATK38_path} -T CombineVariants -R ${params.genome} --variant ${Sample}.mutect.sorted.vcf --variant ${Sample}.vardict.sorted.vcf --variant ${Sample}.DeepSomatic.sorted.vcf --variant ${Sample}.lofreq.sorted.vcf --variant ${Sample}.strelka.sorted.vcf --variant ${Sample}.freebayes.sorted.vcf --variant ${Sample}.platypus.sorted.vcf -o ${Sample}.combined.vcf -genotypeMergeOptions UNIQUIFY
 	"""
 }
 
-
 process cava {
+	tag "${Sample}"
 	input:
 		tuple val(Sample), file (somaticVcf), file (somaticseqMultianno), file(cancervarMultianno), file(combinedVcf)
-	
 	output:
 		tuple val(Sample), file ("*.cava.csv")
 	script:
@@ -523,20 +528,20 @@ process cava {
 	"""
 }
 
-
 process format_somaticseq_combined {
+	tag "${Sample}"
 	input:
 		tuple val (Sample), file(somaticseqVcf), file (multianno), file (cancervarMultianno)
 	output:
 		tuple val (Sample), file("*.somaticseq.csv")
 	script:
 	"""
-	#python3 ${params.format_somaticseq_script} ${multianno} ${Sample}.somaticseq.csv
-	python3 /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/somaticseqoutput-format_dragen.py ${multianno} ${Sample}.somaticseq.csv
+	${params.somaticseq_out} ${multianno} ${Sample}.somaticseq.csv
 	"""
 }
 
 process format_concat_combine_somaticseq {
+	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.concat.csv'
 	input:
 		tuple val (Sample), file (somaticseqCsv)
@@ -602,18 +607,30 @@ process Final_Output {
 	"""
 }
 
-workflow MIPS {
+include { FASTQTOBAM } from '/home/pipelines/NextSeq_mutation_detector_leukemia/scripts/processes.nf'
+
+workflow MyoPool {
 	Channel
 		.fromPath(params.input)
 		.splitCsv(header:false)
 		.flatten()
 		.map{ it }
 		.set { samples_ch }
-	
-	main:	
-	generatefinalbam(samples_ch)
+	bam_ch = Channel.fromPath(params.input).splitCsv(header:false).flatten().map { sample -> def r1 = file("${params.sequences}/${sample}_S*_R1_*.fastq.gz")
+																							def r2 = file("${params.sequences}/${sample}_S*_R2_*.fastq.gz")
+																							tuple(sample, r1, r2)}
+	main:
+	final_bams_ch = FASTQTOBAM(bam_ch)
+	filt3r(final_bams_ch)
+	generatefinalbam(final_bams_ch)
 	getitd(generatefinalbam.out)
 	hsmetrics_run(generatefinalbam.out)
+
+	all_hsmetrics_gw = hsmetrics_run.out.genewise.collect()
+	all_hsmetrics_pw = hsmetrics_run.out.exonwise.collect()
+
+	hsmetrics_collect(all_hsmetrics_gw, all_hsmetrics_pw)
+
 	platypus_run(generatefinalbam.out)
 	coverage(generatefinalbam.out)
 	freebayes_run(generatefinalbam.out)
@@ -624,69 +641,24 @@ workflow MIPS {
 	lofreq_run(generatefinalbam.out)
 	strelka_run(generatefinalbam.out)
 	somaticSeqDragen_run(generatefinalbam.out.join(mutect2_run.out.join(vardict_run.out.join(DeepSomatic.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out))))))))
+	// mocha(somaticSeqDragen_run.out)
 	combine_variants(mutect2_run.out.join(vardict_run.out.join(DeepSomatic.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
 	pindel(generatefinalbam.out)
+	pindel_UBTF(generatefinalbam.out)
 	cnvkit_run(generatefinalbam.out)
-	//annotSV(cnvkit_run.out)
-	//ifcnv_run(generatefinalbam.out.collect())
+	annotSV(cnvkit_run.out)
+	ifcnv_run(generatefinalbam.out.collect())
 	igv_reports(somaticSeqDragen_run.out)
-	//update_db(somaticSeqDragen_run.out.collect())
+	update_db(somaticSeqDragen_run.out.collect())
 	coverview_run(generatefinalbam.out)
 	cava(somaticSeqDragen_run.out.join(combine_variants.out))
 	format_somaticseq_combined(somaticSeqDragen_run.out)
 	format_concat_combine_somaticseq(format_somaticseq_combined.out)
 	format_pindel(pindel.out.join(coverage.out))
-	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out))))))
-	//update_freq(merge_csv.out.collect())
+	format_pindel_UBTF(pindel_UBTF.out.join(coverage.out))
+	merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out.join(filt3r.out.join(format_pindel_UBTF.out))))))))
+	update_freq(merge_csv.out.collect())
 	Final_Output(coverage.out.join(cnvkit_run.out))
-}
-
-workflow MIPS_mocha {
-	Channel
-		.fromPath(params.input)
-		.splitCsv(header:false)
-		.flatten()
-		.map{ it }
-		.set { samples_ch }
-	main:
-	//filt3r(samples_ch)
-	generatefinalbam(samples_ch)
-	//getitd(generatefinalbam.out)
-	//hsmetrics_run(generatefinalbam.out)
-
-	//all_hsmetrics_gw = hsmetrics_run.out.genewise.collect()
-	//all_hsmetrics_pw = hsmetrics_run.out.exonwise.collect()
-
-	//hsmetrics_collect(all_hsmetrics_gw, all_hsmetrics_pw)
-
-	//platypus_run(generatefinalbam.out)
-	//coverage(generatefinalbam.out)
-	//freebayes_run(generatefinalbam.out)
-	//mutect2_run(generatefinalbam.out)
-	//vardict_run(generatefinalbam.out)
-	////varscan_run(generatefinalbam.out)
-	//DeepSomatic(generatefinalbam.out)
-	//lofreq_run(generatefinalbam.out)
-	//strelka_run(generatefinalbam.out)
-	//somaticSeqDragen_run(generatefinalbam.out.join(mutect2_run.out.join(vardict_run.out.join(DeepSomatic.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out))))))))
-	////mocha(somaticSeqDragen_run.out)
-	//combine_variants(mutect2_run.out.join(vardict_run.out.join(DeepSomatic.out.join(lofreq_run.out.join(strelka_run.out.join(freebayes_run.out.join(platypus_run.out)))))))
-	//pindel(generatefinalbam.out)
-	//pindel_UBTF(generatefinalbam.out)
-	cnvkit_run(generatefinalbam.out)
-	//annotSV(cnvkit_run.out)
-	//ifcnv_run(generatefinalbam.out.collect())
-	//igv_reports(somaticSeqDragen_run.out)
-	//update_db(somaticSeqDragen_run.out.collect())
-	//coverview_run(generatefinalbam.out)
-	//cava(somaticSeqDragen_run.out.join(combine_variants.out))
-	//format_somaticseq_combined(somaticSeqDragen_run.out)
-	//format_concat_combine_somaticseq(format_somaticseq_combined.out)
-	//format_pindel(pindel.out.join(coverage.out))
-	//format_pindel_UBTF(pindel_UBTF.out.join(coverage.out))
-	//merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(coverview_run.out.join(format_pindel.out.join(cnvkit_run.out.join(somaticSeqDragen_run.out.join(filt3r.out.join(format_pindel_UBTF.out))))))))
-	//update_freq(merge_csv.out.collect())
-	//Final_Output(coverage.out.join(cnvkit_run.out))
 }
 
 workflow.onComplete {

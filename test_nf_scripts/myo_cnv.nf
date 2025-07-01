@@ -84,10 +84,23 @@ process hsmetrics_collect {
 	"""
 }
 
+process DNDSCV {
+	publishDir "$PWD/Final_Output/", mode : 'copy'
+	input:
+		val (Sample)
+	output:
+		tuple val(Sample), file ("${Sample}_dndscv.xlsx")
+	script:
+	"""
+	cp $PWD/Final_Output/${Sample}/${Sample}.xlsx ${Sample}_dndscv.xlsx
+	/home/pipelines/NextSeq_mutation_detector_leukemia/scripts/dNdScv/run_dndscv.sh ${Sample}_dndscv.xlsx ${Sample}
+	"""
+}
+
 workflow CNV {
 	samples_ch = Channel.fromPath(params.input).splitCsv().flatten()
 	// MARKDUPLICATES(samples_ch)
-	cnvkit(samples_ch)
+	// cnvkit(samples_ch)
 	// generatefinalbam(samples_ch)
 	// hsmetrics_run(generatefinalbam.out)
 	// Run the perSampleProcess for each sample
@@ -98,6 +111,7 @@ workflow CNV {
 	//hsmetrics_collect(ch_results_exon, "Exonwise")
 
 	// Collect all output files before processing them together
+	DNDSCV(samples_ch)
 }
 
 workflow.onComplete {
