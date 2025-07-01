@@ -38,11 +38,11 @@ For running this pipeline, following programs need to be installed and their com
 
 ## Usage:
 
-1. Keep the `bam`, `bam.bai` and `hard-filtered.vcf` files obtained from Dragen into the `sequences/` folder.
+1. Keep the `fastq` files into the `sequences/` folder.
 
 2. Change the `samplesheet.csv`. It should have a list of IDs of the samples. 
 
-3.  Run the following script.
+3. Run the following script.
 
 ```
 ./run_nextflow_bamin.sh > script.log
@@ -53,13 +53,13 @@ This script contains the nextflow command used to execute the workflow.
 ```
 source activate new_base
 
-nextflow -c $PWD/nextflow.config run $PWD/test_nf_scripts/main_bamin.nf -entry MIPS_mocha \
---bedfile <probewise bedfile> \
---bedfile_exonwise <exonwise bedfile> \
---cnvkitRef <cnvkit Reference> \
---gene_scatter_list <chromosome wise list of the exons> \
---gene_scatter <path to the folder containing custom_scatter_chrwise.py> \
--resume -bg 
+nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run scripts/main.nf -entry MyoPool \
+--bedfile /home/pipelines/NextSeq_mutation_detector_leukemia/bedfiles/MYOPOOL_240125_UBTF_sortd \
+--bedfile_exonwise /home/pipelines/mutation_detector_nextflow/bedfile/MYOPOOL_231224_Rebalanced_sortd \
+--cnvkitRef /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_myopool_lt_2x_ver2/Reference_combpanel.cnn \
+--gene_scatter_list /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_MyOPool_exonwise/ \
+--gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \
+-resume -bg
 
 conda deactivate
 ```
