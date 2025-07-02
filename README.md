@@ -1,6 +1,6 @@
-# MYOPOOL 
+# Acute leulemia pipeline details
 
-This is a nextflow pipeline for analysing target DNA sequencing data from the custom panel -MYOPOOL 
+This is a nextflow pipeline for analysing target DNA sequencing data from the custom panel -MYOPOOL. It uses a workflow to convert fastq to bam which is based on https://github.com/GavinHaLab/fastq_to_bam_paired_snakemake.
 
 For running this pipeline, following programs need to be installed and their complete paths need to be added in the params section of the `nextflow.config`.
 
