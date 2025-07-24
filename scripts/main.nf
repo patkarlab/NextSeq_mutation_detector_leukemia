@@ -619,6 +619,9 @@ workflow MyoPool {
 	bam_ch = Channel.fromPath(params.input).splitCsv(header:false).flatten().map { sample -> def r1 = file("${params.sequences}/${sample}_S*_R1_*.fastq.gz")
 																							def r2 = file("${params.sequences}/${sample}_S*_R2_*.fastq.gz")
 																							tuple(sample, r1, r2)}
+	// bam_ch = Channel.fromPath(params.input).splitCsv(header:false).flatten().map { sample -> def r1 = file("${params.sequences}/${sample}_R1.fastq.gz")
+																							// def r2 = file("${params.sequences}/${sample}_R2.fastq.gz")
+																							// tuple(sample, r1, r2)}
 	main:
 	final_bams_ch = FASTQTOBAM(bam_ch)
 	filt3r(final_bams_ch)
@@ -663,4 +666,6 @@ workflow MyoPool {
 
 workflow.onComplete {
 	log.info ( workflow.success ? "\n\nDone! Output in the 'Final_Output' directory \n" : "Oops .. something went wrong" )
+	println "Completed at: ${workflow.complete}"
+	println "Total time taken: ${workflow.duration}"
 }

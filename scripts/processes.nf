@@ -129,6 +129,27 @@ process INSERT_SIZE_METRICS {
 	"""
 }
 
+process ABRA_BAM { 
+	tag "${Sample}"
+	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam'
+	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam.bai'
+	input:
+		tuple val(Sample), file (bamin), file(baiin)
+	output:
+		tuple val(Sample), file ("*.final.bam"), file ("*.final.bam.bai"), file ("*.old_final.bam"), file ("*.old_final.bam.bai")
+	script:
+	"""
+	${params.bedtools} sort -i ${params.bedfile}.bed > sorted.bed
+
+	${params.java_path}/java -Xmx16G -jar ${params.abra2_path}/abra2-2.23.jar --in ${bamin} --out ${Sample}.abra.bam --ref ${params.genome} --threads 8 --targets sorted.bed --tmpdir ./ > abra.log
+
+	${params.samtools} sort ${bamin} > ${Sample}.old_final.bam
+	${params.samtools} index ${Sample}.old_final.bam > ${Sample}.old_final.bam.bai
+	${params.samtools} sort ${Sample}.abra.bam > ${Sample}.final.bam
+	${params.samtools} index ${Sample}.final.bam > ${Sample}.final.bam.bai
+	"""
+}
+
 workflow FASTQTOBAM {
 	take:
 		samples_ch

@@ -67,7 +67,7 @@ echo "WARNING : change the bedfile and the cnv reference"
 
 # For MyOPool
 source activate new_base
-nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run scripts/main.nf -entry MyoPool \
+nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run scripts/alp.nf -entry MyoPool \
 --bedfile /home/pipelines/NextSeq_mutation_detector_leukemia/bedfiles/MYOPOOL_240125_UBTF_sortd \
 --bedfile_exonwise /home/pipelines/mutation_detector_nextflow/bedfile/MYOPOOL_231224_Rebalanced_sortd \
 --cnvkitRef /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_myopool_lt_2x_ver2/Reference_combpanel.cnn \
