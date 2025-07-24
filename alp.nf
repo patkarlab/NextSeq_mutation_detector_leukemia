@@ -10,28 +10,27 @@ Sequences in:${params.sequences}
 """
 
 // Adapter Trimming, alignment and GATK BQSR (based on https://github.com/GavinHaLab/fastq_to_bam_paired_snakemake)
-include { FASTQTOBAM; ABRA_BAM } from './processes.nf'
+include { FASTQTOBAM; ABRA_BAM } from './scripts/processes.nf'
 
 // FLT3 ITD detection
-include { FILT3R; GETITD } from './flt3_itd.nf'
+include { FILT3R; GETITD } from './scripts/flt3_itd.nf'
 
 // HSmetrics calculation
-include { HSMETRICS; HSMETRICS_COLLECT } from './hsmetrics.nf'
+include { HSMETRICS; HSMETRICS_COLLECT } from './scripts/hsmetrics.nf'
 
 // COVERAGE calculation
-include { COVERAGE; COVERVIEW } from './coverage.nf'
+include { COVERAGE; COVERVIEW } from './scripts/coverage.nf'
 
 // Variant calling
-include { PLATYPUS; FREEBAYES; MUTECT2; VARDICT; DEEPSOMATIC; LOFREQ; STRELKA; PINDEL; PINDEL_UBTF} from './variant_call.nf'
-
+include { PLATYPUS; FREEBAYES; MUTECT2; VARDICT; DEEPSOMATIC; LOFREQ; STRELKA; PINDEL; PINDEL_UBTF} from './scripts/variant_call.nf'
 // Variant integration 
-include { SOMATICSEQ; COMBINE_VARIANTS } from './somaticseq.nf'
+include { SOMATICSEQ; COMBINE_VARIANTS } from './scripts/somaticseq.nf'
 
 // CNV calling
-include { CNVKIT; ANNOT_SV; IFCNV } from './cnv_call.nf'
+include { CNVKIT; ANNOT_SV; IFCNV } from './scripts/cnv_call.nf'
 
 // IGV reports
-include { IGV_REPORTS } from './igv_reports.nf'
+include { IGV_REPORTS } from './scripts/igv_reports.nf'
 
 workflow MyoPool {
 	Channel

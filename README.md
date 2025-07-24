@@ -1,7 +1,7 @@
-# Acute leulemia pipeline details
+# Acute leukemia pipeline details
 
-This is a nextflow pipeline for analysing target DNA sequencing data from the custom panel -MYOPOOL. It uses a workflow to convert fastq to bam which is based on https://github.com/GavinHaLab/fastq_to_bam_paired_snakemake.
-
+This is a nextflow pipeline for analysing targeted DNA sequencing data from the custom panel -MYOPOOL.  
+The pipeline is present in `alp.nf`.  
 For running this pipeline, following programs need to be installed and their complete paths need to be added in the params section of the `nextflow.config`.
 
 - adaptors = Fasta file of adapter sequences for trimming
@@ -38,7 +38,7 @@ For running this pipeline, following programs need to be installed and their com
 
 ## Usage:
 
-1. Keep the `fastq` files into the `sequences/` folder.
+1. Keep the `fastq.gz` files into the `sequences/` folder.
 
 2. Change the `samplesheet.csv`. It should have a list of IDs of the samples. 
 
