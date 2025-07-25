@@ -32,6 +32,9 @@ include { CNVKIT; ANNOT_SV; IFCNV } from './scripts/cnv_call.nf'
 // IGV reports
 include { IGV_REPORTS } from './scripts/igv_reports.nf'
 
+// Format output
+include {CAVA; FORMAT_SOMATICSEQ_COMBINED; FORMAT_CONCAT_SOMATICSEQ_COMBINED; FORMAT_PINDEL; FORMAT_PINDEL_UBTF; MERGE_CSV; FINAL_OUTPUT; UPDATE_FREQ; UPDATE_DB} from './scripts/format_output.nf'
+
 workflow MyoPool {
 	Channel
 		.fromPath(params.input)
@@ -87,15 +90,16 @@ workflow MyoPool {
 	// IGV reports
 	IGV_REPORTS(SOMATICSEQ.out)
 
-	// update_db(SOMATICSEQ.out.collect())
-	// cava(SOMATICSEQ.out.join(COMBINE_VARIANTS.out))
-	// format_somaticseq_combined(SOMATICSEQ.out)
-	// format_concat_combine_somaticseq(format_somaticseq_combined.out)
-	// format_pindel(pindel.out.join(COVERAGE.out))
-	// format_pindel_UBTF(pindel_UBTF.out.join(COVERAGE.out))
-	// merge_csv(format_concat_combine_somaticseq.out.join(cava.out.join(COVERVIEW.out.join(format_pindel.out.join(CNVKIT.out.join(SOMATICSEQ.out.join(FILT3R.out.join(format_pindel_UBTF.out))))))))
-	// update_freq(merge_csv.out.collect())
-	// Final_Output(COVERAGE.out.join(CNVKIT.out))
+	// Format Output
+	CAVA(SOMATICSEQ.out.join(COMBINE_VARIANTS.out))	
+	FORMAT_SOMATICSEQ_COMBINED(SOMATICSEQ.out)
+	FORMAT_CONCAT_SOMATICSEQ_COMBINED(FORMAT_SOMATICSEQ_COMBINED.out)
+	FORMAT_PINDEL(PINDEL.out.join(COVERAGE.out))
+	FORMAT_PINDEL_UBTF(PINDEL_UBTF.out.join(COVERAGE.out))
+	MERGE_CSV(FORMAT_CONCAT_SOMATICSEQ_COMBINED.out.join(CAVA.out.join(COVERVIEW.out.join(FORMAT_PINDEL.out.join(CNVKIT.out.join(SOMATICSEQ.out.join(FILT3R.out.join(FORMAT_PINDEL_UBTF.out))))))))	
+	FINAL_OUTPUT(COVERAGE.out.join(CNVKIT.out))
+	UPDATE_FREQ(MERGE_CSV.out.collect())
+	UPDATE_DB(SOMATICSEQ.out.collect())
 }
 
 workflow.onComplete {

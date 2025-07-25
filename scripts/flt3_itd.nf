@@ -4,7 +4,7 @@ process FILT3R {
 	tag "${Sample}"
 	publishDir "${params.output}/${Sample}/", mode: 'copy', pattern: '*_filt3r_out.csv'
 	input:
-		tuple val(Sample), file (bamin), file(baiin)
+		tuple val(Sample), file (bamin), file(baiin), file (oldfinalBam), file (oldfinalBamBai)
 	output:
 		tuple val (Sample), file("*_filt3r_out.csv")
 	script:

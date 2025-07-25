@@ -616,12 +616,12 @@ workflow MyoPool {
 		.flatten()
 		.map{ it }
 		.set { samples_ch }
-	bam_ch = Channel.fromPath(params.input).splitCsv(header:false).flatten().map { sample -> def r1 = file("${params.sequences}/${sample}_S*_R1_*.fastq.gz")
-																							def r2 = file("${params.sequences}/${sample}_S*_R2_*.fastq.gz")
-																							tuple(sample, r1, r2)}
-	// bam_ch = Channel.fromPath(params.input).splitCsv(header:false).flatten().map { sample -> def r1 = file("${params.sequences}/${sample}_R1.fastq.gz")
-																							// def r2 = file("${params.sequences}/${sample}_R2.fastq.gz")
+	// bam_ch = Channel.fromPath(params.input).splitCsv(header:false).flatten().map { sample -> def r1 = file("${params.sequences}/${sample}_S*_R1_*.fastq.gz")
+																							// def r2 = file("${params.sequences}/${sample}_S*_R2_*.fastq.gz")
 																							// tuple(sample, r1, r2)}
+	bam_ch = Channel.fromPath(params.input).splitCsv(header:false).flatten().map { sample -> def r1 = file("${params.sequences}/${sample}_R1.fastq.gz")
+																							def r2 = file("${params.sequences}/${sample}_R2.fastq.gz")
+																							tuple(sample, r1, r2)}
 	main:
 	final_bams_ch = FASTQTOBAM(bam_ch)
 	filt3r(final_bams_ch)
