@@ -9,7 +9,7 @@ process FILT3R {
 		tuple val (Sample), file("*_filt3r_out.csv")
 	script:
 	"""
-	${params.bedtools} bamtofastq -i ${bamin} -fq ${Sample}_R1.fastq -fq2 ${Sample}_R2.fastq
+	${params.bedtools} bamtofastq -i ${oldfinalBam} -fq ${Sample}_R1.fastq -fq2 ${Sample}_R2.fastq
 	filt3r -k 12 --ref ${params.filt3r_ref} --sequences ${Sample}_R1.fastq,${Sample}_R2.fastq --nb-threads 64 --vcf --out ${Sample}_filt3r.json
 	python3 /home/diagnostics/pipelines/Validation/scripts/convert_json_to_csv.py ${Sample}_filt3r.json ${Sample}_filt3r_json.csv
 	perl ${params.annovarLatest_path}/convert2annovar.pl -format vcf4 ${Sample}_filt3r.vcf --outfile ${Sample}.filt3r.avinput --withzyg --includeinfo
@@ -37,7 +37,7 @@ process GETITD {
 		path "*_getitd"
 	script:
 	"""
-	${params.samtools} sort ${finalBam} -o ${Sample}.sorted.bam
+	${params.samtools} sort ${oldfinalBam} -o ${Sample}.sorted.bam
 	${params.samtools} index ${Sample}.sorted.bam
 	${params.samtools} view ${Sample}.sorted.bam -b -h chr13 > ${Sample}.chr13.bam
 	${params.bedtools} bamtofastq -i ${Sample}.chr13.bam -fq ${Sample}_chr13.fastq
