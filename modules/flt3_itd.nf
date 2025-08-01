@@ -21,9 +21,9 @@ process FILT3R {
 		touch ${Sample}_filt3r_json_filtered.csv
 		touch ${Sample}_filt3r_out.csv
 	else
-		python3 /home/diagnostics/pipelines/Validation/scripts/somaticseqoutput-format_filt3r.py ${Sample}.filt3r.hg19_multianno.csv ${Sample}.filt3r__final.csv
-		python3 /home/diagnostics/pipelines/Validation/scripts/filter_json.py ${Sample}_filt3r_json.csv ${Sample}_filt3r_json_filtered.csv
-		python3 /home/diagnostics/pipelines/Validation/scripts/merge_filt3r_csvs.py ${Sample}.filt3r__final.csv ${Sample}_filt3r_json_filtered.csv ${Sample}_filt3r_out.csv
+		python3 somaticseqoutput-format_filt3r.py ${Sample}.filt3r.hg19_multianno.csv ${Sample}.filt3r__final.csv
+		python3 filter_json.py ${Sample}_filt3r_json.csv ${Sample}_filt3r_json_filtered.csv
+		python3 merge_filt3r_csvs.py ${Sample}.filt3r__final.csv ${Sample}_filt3r_json_filtered.csv ${Sample}_filt3r_out.csv
 	fi
 	"""
 }

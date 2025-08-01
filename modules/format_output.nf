@@ -10,7 +10,7 @@ process CAVA {
 	"""
 	${params.cava_path}/cava -c ${params.cava_path}/config_v2.txt -t 10 -i ${somaticVcf} -o ${Sample}.somaticseq
 	${params.cava_path}/cava -c ${params.cava_path}/config_v2.txt -t 10 -i ${combinedVcf} -o ${Sample}.combined
-	python3 ${params.cava_script_path} ${Sample}.somaticseq.txt ${Sample}.combined.txt ${Sample}.cava.csv
+	cava.py ${Sample}.somaticseq.txt ${Sample}.combined.txt ${Sample}.cava.csv
 	"""
 }
 
@@ -22,7 +22,7 @@ process FORMAT_SOMATICSEQ_COMBINED {
 		tuple val (Sample), file("*.somaticseq.csv")
 	script:
 	"""
-	${params.somaticseq_out} ${multianno} ${Sample}.somaticseq.csv
+	somaticseqoutput-format.py ${multianno} ${Sample}.somaticseq.csv
 	"""
 }
 

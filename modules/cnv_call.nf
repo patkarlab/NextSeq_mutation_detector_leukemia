@@ -13,11 +13,11 @@ process CNVKIT {
 	"""
 	
 	#cnvkit.py batch ${finalBam} -r ${params.cnvkitRef} -m hybrid --drop-low-coverage --output-dir ${PWD}/${Sample}/cnvkit/ --diagram --scatter
-	${params.cnvkit_path} ${finalBam} ${params.cnvkitRef} ./
+	cnvkit.sh ${finalBam} ${params.cnvkitRef} ./
 	# Commenting the following command for CNV myeloid panel, uncomment for the usual AL panel
 	#/${params.gene_scatter}/custom_scatter_v3.py ${params.gene_scatter}/chr_list_all.txt ./${Sample}.final.cnr ./${Sample}.final.cns ${Sample}
 
-	/${params.gene_scatter}/custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ./${Sample}.final.cnr ./${Sample}.final.cns ${Sample}_chr_
+	custom_scatter_chrwise.py ${params.gene_scatter_list}/chrwise_list.txt ./${Sample}.final.cnr ./${Sample}.final.cns ${Sample}_chr_
 	"""
 }
 
@@ -30,8 +30,8 @@ process ANNOT_SV {
 		tuple val (Sample), file ("*_AnnotSV.tsv")
 	script:
 	"""
-	/${params.annotsv} ${finalCns} ${Sample}
-	/${params.substitute_null} ${Sample}_annotsv.tsv ${Sample}_AnnotSV.tsv
+	annotsv.sh ${finalCns} ${Sample}
+	substitute_null.py ${Sample}_annotsv.tsv ${Sample}_AnnotSV.tsv
 	"""
 }
 
@@ -43,9 +43,9 @@ process IFCNV {
 		val (Sample)
 	script:
 	"""
-	${params.links} $PWD/Final_Output/ ${params.input}
+	links.sh $PWD/Final_Output/ ${params.input}
 	mkdir ifCNV
-	${params.ifcnv} ./ ${params.bedfile}.bed ifCNV
+	ifcnv.sh ./ ${params.bedfile}.bed ifCNV
 
 	# Making ifCNV's output directory for each sample
 	for i in `cat ${params.input}`
