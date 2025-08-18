@@ -40,12 +40,12 @@ workflow MyoPool {
 		.fromPath(params.input)
 		.splitCsv(header:false)
 		.flatten()
-		// .map { sample -> def r1 = file("${params.sequences}/${sample}_S*_R1_*.fastq.gz") 
-		// 				def r2 = file("${params.sequences}/${sample}_S*_R2_*.fastq.gz")
-		// 				tuple(sample, r1, r2)}
-		.map { sample -> def r1 = file("${params.sequences}/${sample}_R1.fastq.gz")
-						def r2 = file("${params.sequences}/${sample}_R2.fastq.gz")
-						tuple(sample, r1, r2)}
+		.map { sample -> def r1 = file("${params.sequences}/${sample}_S*_R1_*.fastq.gz") 
+						def r2 = file("${params.sequences}/${sample}_S*_R2_*.fastq.gz")
+		 				tuple(sample, r1, r2)}
+		//.map { sample -> def r1 = file("${params.sequences}/${sample}_R1.fastq.gz")
+		//				def r2 = file("${params.sequences}/${sample}_R2.fastq.gz")
+		//				tuple(sample, r1, r2)}
 		.set { bam_ch }
 
 	main:
