@@ -93,7 +93,7 @@ process DNDSCV {
 	script:
 	"""
 	cp $PWD/Final_Output/${Sample}/${Sample}.xlsx ${Sample}_dndscv.xlsx
-	run_dndscv.sh ${Sample}_dndscv.xlsx ${Sample}
+	/home/pipelines/NextSeq_mutation_detector_leukemia/bin/run_dndscv.sh ${Sample}_dndscv.xlsx ${Sample}
 	"""
 }
 

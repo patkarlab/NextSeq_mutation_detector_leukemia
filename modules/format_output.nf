@@ -106,17 +106,20 @@ process UPDATE_FREQ {
 	input:
 		val (Sample)
 	output:
-		val Sample
+		path "*.xlsx"
 	script:
 	"""
 	ln -s ${PWD}/work/freq.txt ./
+
 	for i in `cat ${params.input}`
 	do
 		if [ -f ${PWD}/Final_Output/\${i}/\${i}.xlsx ]; then
 			${params.update_freq_excel} ${PWD}/Final_Output/\${i}/\${i}.xlsx freq.txt
+
+			ln -s ${PWD}/Final_Output/\${i}/\${i}.xlsx ./\${i}.xlsx
 		fi
 	done
-	"""  	
+	"""
 }
 
 process UPDATE_DB {
