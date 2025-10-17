@@ -111,7 +111,7 @@ process UPDATE_FREQ {
 	"""
 	ln -s ${PWD}/work/freq.txt ./
 
-	for i in `cat ${params.input}`
+	for i in `cat ${params.input} | grep -i 'myo' | sed 's/-[[:alpha:]]*//g'`
 	do
 		if [ -f ${PWD}/Final_Output/\${i}/\${i}.xlsx ]; then
 			${params.update_freq_excel} ${PWD}/Final_Output/\${i}/\${i}.xlsx freq.txt
@@ -130,7 +130,7 @@ process UPDATE_DB {
 		file ("freq.txt")
 	script:
 	"""
-	for i in `cat ${params.input}`
+	for i in `cat ${params.input} | grep -i 'myo' | sed 's/-[[:alpha:]]*//g'`
 	do 
 		if [ -f ${PWD}/Final_Output/\${i}/\${i}.somaticseq.vcf ]; then
 			ln -s ${PWD}/Final_Output/\${i}/\${i}.somaticseq.vcf ./

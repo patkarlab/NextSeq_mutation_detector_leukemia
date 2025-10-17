@@ -12,7 +12,7 @@ sed -i 's/chr//g' tumor.wig
 sed -i 's/om/chrom/g' tumor.wig
 mkdir ${outdir}
 
-Rscript /home/diagnostics/pipelines/ichorCNA-0.4.0/scripts/runIchorCNA.R --id ${sample} \
+/usr/bin/Rscript /home/diagnostics/pipelines/ichorCNA-0.4.0/scripts/runIchorCNA.R --id ${sample} \
   --libdir /home/diagnostics/pipelines/ichorCNA-0.4.0/ \
   --WIG tumor.wig --ploidy "c(2,3)" --normal "c(0.5,0.6,0.7,0.8,0.9)" --maxCN 5 \
   --gcWig /home/diagnostics/pipelines/ichorCNA-0.4.0/inst/extdata/gc_hg19_1000kb.wig \
@@ -22,3 +22,4 @@ Rscript /home/diagnostics/pipelines/ichorCNA-0.4.0/scripts/runIchorCNA.R --id ${
   --includeHOMD False --chrs "c(1:22, \"X\")" --chrTrain "c(1:22)" \
   --estimateNormal True --estimatePloidy True --estimateScPrevalence True \
   --scStates "c(1,3)" --txnE 0.9999 --txnStrength 10000 --outDir ${outdir}
+

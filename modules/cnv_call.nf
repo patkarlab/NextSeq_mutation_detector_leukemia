@@ -48,7 +48,7 @@ process IFCNV {
 	ifcnv.sh ./ ${params.bedfile}.bed ifCNV
 
 	# Making ifCNV's output directory for each sample
-	for i in `cat ${params.input}`
+	for i in `cat ${params.input} | grep -i 'myo' | sed 's/-[[:alpha:]]*//g' `
 	do
 		if [ ! -d $PWD/Final_Output/\${i}/ifCNV ]; then
 			mkdir $PWD/Final_Output/\${i}/ifCNV

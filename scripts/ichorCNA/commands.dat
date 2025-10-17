@@ -1,0 +1,33 @@
+#########################################################################################
+
+#WITH BEDFILE - 10kb bins
+
+#Creating wig files
+for i in `cat samples.dat`; do create_wig_10kb.sh $i; done
+
+#Creating wig file list
+for i in `cat samples.dat`; do realpath ${i}.10kb.tumor.wig; done > wig_files_10kb.txt
+
+#Creating the Panel of Normals
+./create_panel_10kb.sh
+
+#Running ichorCNA
+for i in `cat samples.dat`; do ./run_ichor_10kb.sh $i; done
+
+#########################################################################################
+
+#WITHOUT BEDFILE - 1000kb bins
+
+#Creating wig files
+for i in `cat samples.dat`; do create_wig_nobed.sh $i; done
+
+#Creating wig file list
+for i in `cat samples.dat`; do realpath ${i}.tumor.wig; done > wig_files_nobed.txt
+
+#Creating the Panel of Normals
+./create_panel_nobed.sh
+
+#Running ichorCNA
+for i in `cat samples.dat`; do ./run_ichor_nobed.sh $i; done
+
+#########################################################################################

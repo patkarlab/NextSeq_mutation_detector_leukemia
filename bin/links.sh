@@ -4,8 +4,8 @@
 output_folder=$1
 sample_list=$2
 
-for samples in `cat ${sample_list}`
-do 
+for samples in `cat ${sample_list} | grep -i 'myo' | sed 's/-[[:alpha:]]*//g'`
+do
 	ln -s ${output_folder}/${samples}/${samples}.final.bam ./
 	#touch ${output_folder}/${samples}/${samples}.final.bam.bai
 	ln -s ${output_folder}/${samples}/${samples}.final.bam.bai ./

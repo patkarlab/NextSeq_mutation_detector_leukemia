@@ -129,6 +129,41 @@ process INSERT_SIZE_METRICS {
 	"""
 }
 
+process ALIGNMENT_METRICS_WGS {
+	publishDir "${params.output}/${Sample}/${Sample}-WGS/", mode: 'copy', pattern: '*_alignment_summary_metrics.txt'
+	tag "${Sample}"
+	input:
+		tuple val(Sample), file(final_bam), file(final_bam_bai)
+	output:
+		tuple val(Sample), file("${Sample}_alignment_summary_metrics.txt")
+	script:
+	"""
+	${params.java_path}/java -jar ${params.picard_path} CollectAlignmentSummaryMetrics \
+		R=${params.genome} \
+		I=${final_bam} \
+		O=${Sample}_alignment_summary_metrics.txt
+	"""
+}
+
+process INSERT_SIZE_METRICS_WGS {
+	publishDir "${params.output}/${Sample}/${Sample}-WGS/", mode: 'copy', pattern: '*_insert_size_metrics.txt'
+	publishDir "${params.output}/${Sample}/${Sample}-WGS/", mode: 'copy', pattern: '*_insert_size_metrics.pdf'
+	tag "${Sample}"
+	input:
+		tuple val(Sample), file(final_bam), file(final_bam_bai)
+	output:
+		tuple val(Sample), file("${Sample}_insert_size_metrics.txt"), file("${Sample}_insert_size_metrics.pdf")
+	script:
+	"""
+	${params.java_path}/java -jar ${params.picard_path} CollectInsertSizeMetrics \
+		I=${final_bam} \
+		O=${Sample}_insert_size_metrics.txt \
+		H=${Sample}_insert_size_metrics.pdf \
+		HISTOGRAM_WIDTH=500 \
+		TMP_DIR=${Sample}_tmp
+	"""
+}
+
 process ABRA_BAM { 
 	tag "${Sample}"
 	publishDir "$PWD/Final_Output/${Sample}/", mode: 'copy', pattern: '*.final.bam'
@@ -163,6 +198,20 @@ workflow FASTQTOBAM {
 	 ALIGNMENT_METRICS(APPLY_BQSR.out)
 	 INSERT_SIZE_METRICS(APPLY_BQSR.out)
 	emit:
-		final_bams_ch = APPLY_BQSR.out
-	
+		final_bams_ch = APPLY_BQSR.out	
+}
+
+workflow FASTQTOBAM_WGS {
+	take:
+		samples_ch
+	main:
+	 TRIM(samples_ch)
+	 MAPBAM(TRIM.out)
+	 MARK_DUPS(MAPBAM.out)
+	 BQSR(MARK_DUPS.out)
+	 APPLY_BQSR(MARK_DUPS.out.join(BQSR.out))
+	 ALIGNMENT_METRICS_WGS(APPLY_BQSR.out)
+	 INSERT_SIZE_METRICS_WGS(APPLY_BQSR.out)
+	emit:
+		wgs_bam_ch = APPLY_BQSR.out
 }

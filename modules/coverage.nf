@@ -31,22 +31,22 @@ process COVERVIEW {
 }
 
 process COVERAGE_WGS {
-    tag "${Sample}"
-    publishDir "${params.output}/${Sample}/" , mode: 'copy', pattern: '*txt'
+	tag "${Sample}"
+	publishDir "${params.output}/${Sample}/${Sample}-WGS/" , mode: 'copy'
 
-    input:
-    tuple val(Sample), file(final_bam), file(final_bai)
+	input:
+	tuple val(Sample), file(final_bam), file(final_bai)
 
-    output:
-    file("${Sample}_WGS_coverage_metrics.txt")
+	output:
+	file("${Sample}_WGS_coverage_metrics.txt")
 
-    script:
-    """
-    ${params.java_path}/java -jar ${params.picard_path} CollectWgsMetrics \
-    I=${final_bam} \
-    R=${params.genome} \
-    O=${Sample}_WGS_coverage_metrics.txt
-    """
+	script:
+	"""
+	${params.java_path}/java -jar ${params.picard_path} CollectWgsMetrics \
+	I=${final_bam} \
+	R=${params.genome} \
+	O=${Sample}_WGS_coverage_metrics.txt
+	"""
 }
 
 process COVERAGE_WGS_COLLECT {
