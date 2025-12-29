@@ -44,3 +44,16 @@ process GETITD {
 	python ${params.get_itd_path}/getitd.py -reference ${params.get_itd_path}/anno/amplicon.txt -anno ${params.get_itd_path}/anno/amplicon_kayser.tsv -forward_adapter AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT -reverse_adapter CAAGCAGAAGACGGCATACGAGATCGGTCTCGGCATTCCTGCTGAACCGCTCTTCCGATCT -nkern 8 ${Sample} ${Sample}_chr13.fastq
 	"""
 }
+
+process FLT3_ITD_EXT {
+	tag "${Sample}"
+	input:
+		tuple val (Sample), file(trim1), file(trim2)	
+	output:
+		tuple val (Sample), file("*vcf")
+	script:
+	"""
+	perl /biosoft/FLT3_ITD_ext/FLT3_ITD_ext.pl -a 0 -f1 ${trim1} -f2 ${trim2} -o ./ -g hg19
+
+	"""
+}

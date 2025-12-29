@@ -198,7 +198,8 @@ workflow FASTQTOBAM {
 	 ALIGNMENT_METRICS(APPLY_BQSR.out)
 	 INSERT_SIZE_METRICS(APPLY_BQSR.out)
 	emit:
-		final_bams_ch = APPLY_BQSR.out	
+		final_bams_ch = APPLY_BQSR.out
+		trimmed_fastq = TRIM.out
 }
 
 workflow FASTQTOBAM_WGS {

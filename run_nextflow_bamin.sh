@@ -66,12 +66,12 @@ echo "WARNING : change the bedfile and the cnv reference"
 #conda deactivate
 
 # For MyOPool
-#source activate new_base
+source activate new_base
 nextflow -c /home/pipelines/NextSeq_mutation_detector_leukemia/nextflow.config run main.nf -entry MyoPool \
 --bedfile /home/pipelines/NextSeq_mutation_detector_leukemia/bedfiles/MYOPOOL_240125_UBTF_sortd \
 --bedfile_exonwise /home/pipelines/mutation_detector_nextflow/bedfile/MYOPOOL_231224_Rebalanced_sortd \
 --cnvkitRef /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_myopool_lt_2x_ver2/Reference_combpanel.cnn \
 --gene_scatter_list /home/pipelines/NextSeq_mutation_detector_leukemia/scripts/cnvkit_MyOPool_exonwise/ \
 --gene_scatter /home/pipelines/MMpanel/scripts/gene_scatter \
--resume -bg
-#conda deactivate
+-profile docker -resume -bg
+conda deactivate

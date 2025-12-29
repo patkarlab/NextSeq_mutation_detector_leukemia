@@ -13,7 +13,7 @@ Sequences in:${params.sequences}
 include { FASTQTOBAM; FASTQTOBAM_WGS; ABRA_BAM } from './modules/processes.nf'
 
 // FLT3 ITD detection
-include { FILT3R; GETITD } from './modules/flt3_itd.nf'
+include { FILT3R; GETITD; FLT3_ITD_EXT } from './modules/flt3_itd.nf'
 
 // HSmetrics calculation
 include { HSMETRICS; HSMETRICS_COLLECT } from './modules/hsmetrics.nf'
@@ -34,7 +34,7 @@ include { CNVKIT; ANNOT_SV; IFCNV } from './modules/cnv_call.nf'
 include { IGV_REPORTS } from './modules/igv_reports.nf'
 
 // ichorCNA
-include { ICHOR_CNA } from './modules/ichorCNA.nf'
+include { ICHOR_CNA; OFFTARGET_BAM_GEN; ICHORCNA_OFFTARGET } from './modules/ichorCNA.nf'
 
 // Format output
 include {CAVA; FORMAT_SOMATICSEQ_COMBINED; FORMAT_CONCAT_SOMATICSEQ_COMBINED; FORMAT_PINDEL; FORMAT_PINDEL_UBTF; MERGE_CSV; FINAL_OUTPUT; UPDATE_FREQ; UPDATE_DB} from './modules/format_output.nf'
@@ -61,7 +61,7 @@ workflow MyoPool {
 			tuple(sample_full, sample_base, r1, r2)
 		}
 		.branch {
-			myopool: it[0].contains("MyOPool")
+			myopool: it[0].toLowerCase().contains("myopool") || it[0].toLowerCase().contains("screl")
 			wgs:     it[0].contains("WGS")
 		}
 
@@ -74,11 +74,12 @@ workflow MyoPool {
 	main:
 	// Adapter Trimming, alignment and GATK BQSR - MYOPOOL
 	myo_bam_ch = FASTQTOBAM(myopool_ch)
-	ABRA_BAM (myo_bam_ch)
+	ABRA_BAM (myo_bam_ch.final_bams_ch)
 
 	// FLT3 ITD detection
 	FILT3R(ABRA_BAM.out)
 	GETITD(ABRA_BAM.out)
+	FLT3_ITD_EXT(myo_bam_ch.trimmed_fastq)
 
 	// HSmetrics calculation 
 	HSMETRICS(ABRA_BAM.out)
@@ -89,6 +90,10 @@ workflow MyoPool {
 	// COVERAGE calculation
 	COVERAGE(ABRA_BAM.out)
 	COVERVIEW(ABRA_BAM.out)
+
+	// ichorCNA Offtarget
+	OFFTARGET_BAM_GEN(ABRA_BAM.out)
+	ICHORCNA_OFFTARGET(OFFTARGET_BAM_GEN.out)
 
 	// Variant calling 
 	PLATYPUS(ABRA_BAM.out)
@@ -119,7 +124,7 @@ workflow MyoPool {
 	FORMAT_CONCAT_SOMATICSEQ_COMBINED(FORMAT_SOMATICSEQ_COMBINED.out)
 	FORMAT_PINDEL(PINDEL.out.join(COVERAGE.out))
 	FORMAT_PINDEL_UBTF(PINDEL_UBTF.out.join(COVERAGE.out))
-	MERGE_CSV(FORMAT_CONCAT_SOMATICSEQ_COMBINED.out.join(CAVA.out.join(COVERVIEW.out.join(FORMAT_PINDEL.out.join(CNVKIT.out.join(SOMATICSEQ.out.join(FILT3R.out.join(FORMAT_PINDEL_UBTF.out))))))))	
+	MERGE_CSV(FORMAT_CONCAT_SOMATICSEQ_COMBINED.out.join(CAVA.out.join(COVERVIEW.out.join(FORMAT_PINDEL.out.join(CNVKIT.out.join(SOMATICSEQ.out.join(FILT3R.out.join(FORMAT_PINDEL_UBTF.out.join(FLT3_ITD_EXT.out)))))))))	
 	FINAL_OUTPUT(COVERAGE.out.join(CNVKIT.out))
 	UPDATE_FREQ(MERGE_CSV.out.collect())
 	UPDATE_DB(SOMATICSEQ.out.collect())

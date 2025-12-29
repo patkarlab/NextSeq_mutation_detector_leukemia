@@ -71,14 +71,15 @@ process FORMAT_PINDEL_UBTF {
 
 process MERGE_CSV {
 	input:
-		tuple val (Sample), file (finalConcat), file (artefacts), file (cavaCsv), file (coverviewRegions) ,file (finalPindel), file(finalCns), file(finalCnr), file(geneScatter), file (finalScatter), file (finalDiagram), file (somaticVcf), file (somaticseqMultianno), file (cancervarMultianno), file(filt3rCsv), file(finalPindelUBTF)
+		tuple val (Sample), file (finalConcat), file (artefacts), file (cavaCsv), file (coverviewRegions) ,file (finalPindel), file(finalCns), file(finalCnr), file(geneScatter), file (finalScatter), file (finalDiagram), file (somaticVcf), file (somaticseqMultianno), file (cancervarMultianno), file(filt3rCsv), file(finalPindelUBTF), file(ext_vcf)
 	output:
 		val Sample
 	script:
 	"""
 	sed -i 's/\t/,/g' ${finalCnr}
 	python3 ${params.pharma_marker_script} ${Sample} ./ ${params.pharma_input_xlxs} ./${Sample}_pharma.csv
-	python3 ${params.merge_csvs_script} ${Sample} ./ ${PWD}/Final_Output/${Sample}/${Sample}.xlsx ./ ${coverviewRegions} ${finalPindel} ${finalCnr} ./${Sample}_pharma.csv ${finalPindelUBTF}
+	flt3_ext_format.py -v ${ext_vcf} -o ${Sample}_ext.tsv
+	python3 ${params.merge_csvs_script} ${Sample} ./ ${PWD}/Final_Output/${Sample}/${Sample}.xlsx ./ ${coverviewRegions} ${finalPindel} ${finalCnr} ./${Sample}_pharma.csv ${finalPindelUBTF} ${Sample}_ext.tsv
 
 	cp ${finalConcat} ${Sample}.final.concat_append.csv
 	${params.vep_script_path} ${PWD}/Final_Output/${Sample}/${Sample}.somaticseq.vcf ${PWD}/Final_Output/${Sample}/${Sample}
@@ -87,6 +88,7 @@ process MERGE_CSV {
 	${params.pcgr_cpsr_script_path} ${PWD}/Final_Output/${Sample}/${Sample}.xlsx ${Sample}_cancervar.csv ${filt3rCsv}
 
 	mv output_temp.xlsx ${PWD}/Final_Output/${Sample}/${Sample}.xlsx
+	
 	"""
 }
 
