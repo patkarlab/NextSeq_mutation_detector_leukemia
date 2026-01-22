@@ -68,8 +68,6 @@ workflow MyoPool {
 	myopool_ch = leukemia.myopool.map { full, base, r1, r2 -> tuple(base, r1, r2) }
 	wgs_ch     = leukemia.wgs.map     { full, base, r1, r2 -> tuple(base, r1, r2) }
 
-	myopool_ch.view { "MYOPOOL: $it" }
-	wgs_ch.view     { "WGS: $it" }
 
 	main:
 	// Adapter Trimming, alignment and GATK BQSR - MYOPOOL
@@ -79,7 +77,7 @@ workflow MyoPool {
 	// FLT3 ITD detection
 	FILT3R(ABRA_BAM.out)
 	GETITD(ABRA_BAM.out)
-	FLT3_ITD_EXT(myo_bam_ch.trimmed_fastq)
+	FLT3_ITD_EXT(ABRA_BAM.out)
 
 	// HSmetrics calculation 
 	HSMETRICS(ABRA_BAM.out)
@@ -128,9 +126,6 @@ workflow MyoPool {
 	FINAL_OUTPUT(COVERAGE.out.join(CNVKIT.out))
 	UPDATE_FREQ(MERGE_CSV.out.collect())
 	UPDATE_DB(SOMATICSEQ.out.collect())
-	DNDSCV(UPDATE_FREQ.out.collect())
-
-
 
 	// Adapter Trimming, alignment and GATK BQSR - WGS
 	wgs_bam_ch = FASTQTOBAM_WGS(wgs_ch)

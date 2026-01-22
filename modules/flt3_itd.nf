@@ -47,13 +47,13 @@ process GETITD {
 
 process FLT3_ITD_EXT {
 	tag "${Sample}"
+	label 'process_low'
 	input:
-		tuple val (Sample), file(trim1), file(trim2)	
+		tuple val (Sample), file(bam), file(bamBai), file(oldBam), file(oldBamBai)	
 	output:
-		tuple val (Sample), file("*vcf")
+		tuple val (Sample), file("${Sample}*.vcf")
 	script:
 	"""
-	perl /biosoft/FLT3_ITD_ext/FLT3_ITD_ext.pl -a 0 -f1 ${trim1} -f2 ${trim2} -o ./ -g hg19
-
+	perl /biosoft/FLT3_ITD_ext/FLT3_ITD_ext.pl --bam ${bam} -o ./ || true
 	"""
 }
