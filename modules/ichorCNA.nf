@@ -47,6 +47,7 @@ process ICHORCNA_OFFTARGET {
 	offtarget_ichorCNA.sh ${Sample} ${offtarget_bam} probes.bed exons.bed
 	cp ${Sample}_offtarget/${Sample}/${Sample}_genomeWide_all_sols.pdf ./
 	cp ${Sample}_offtarget/${Sample}/${Sample}_genomeWide.pdf ./
+
 	"""
 }	
 
